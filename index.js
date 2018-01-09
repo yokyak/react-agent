@@ -16,20 +16,16 @@ class Store extends Component {
   }
 }
 
-let store, socket, currentCallback;
+let store;
+let counter = 0;
+const cache = {};
+let socket = io.connect();
+
+window.addEventListener('online', () => {
+  socket = io.connect();
+});
 
 export const Agent = (props) => {
-  socket = io(props.url);
-
-  socket.on('response', data => {
-    set(data.key, data.response, false);
-  });
-
-  socket.on('queryResponse', data => {
-    // _cachedRequests[data.timestamp] = null;
-    currentCallback(data);
-  });
-
   store = new Store(props);
   return store;
 }
@@ -45,12 +41,45 @@ export const set = (key, value, runQueries = true, callback) => {
   } else {
     store.addToStore(key, value);
   }
-  socket.emit('set', { key, value, runQueries });
-}
 
-export const query = (key, callback, values) => {
-  socket.emit('query', { key, values });
-  // const timestamp = Date.now();
-  // _cachedRequests[timestamp] = { key, callback, values, timestamp };
-  currentCallback = callback;
-}
+  if (runQueries) {
+    counter += 1;
+    socket.emit('set', { key, value, runQueries, counter });
+
+    cache[counter] = {
+      method: 'set', arguments: { key, value, runQueries, counter }, callback,
+    };
+  }
+};
+
+export const query = (key, callback, value) => {
+  counter += 1;
+  socket.emit('query', { key, value, counter });
+
+  cache[counter] = { method: 'query', arguments: { key, value, counter }, callback };
+};
+
+socket.on('local', () => {
+  Object.values(cache).forEach((value) => {
+    socket.emit(value.method, value.arguments);
+  });
+});
+
+socket.on('response', (data) => {
+  if (data.key) {
+    set(data.key, data.response, false);
+  }
+
+  delete cache[data.counter];
+});
+
+socket.on('queryResponse', (data) => {
+  if (data.counter in cache) {
+    if (cache[data.counter].callback) {
+      cache[data.counter].callback(data.response);
+    }
+  }
+
+  delete cache[data.counter];
+});
+
