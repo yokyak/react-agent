@@ -12,7 +12,6 @@ class Store extends Component {
   }
 
   render() {
-    console.log(this.state);
     return cloneElement(this.props.children, this.state);
   }
 }
