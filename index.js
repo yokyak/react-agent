@@ -4,9 +4,7 @@ import io from 'socket.io-client';
 class Store extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      _cachedRequests: {}
-    }
+    this.state = props.store;
   }
 
   addToStore(key, value) {
@@ -14,6 +12,7 @@ class Store extends Component {
   }
 
   render() {
+    console.log(this.state);
     return cloneElement(this.props.children, this.state);
   }
 }
@@ -32,7 +31,7 @@ export const Agent = (props) => {
     currentCallback(data);
   });
 
-  store = new Store;
+  store = new Store(props);
   return store;
 }
 
