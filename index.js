@@ -4,9 +4,7 @@ import io from 'socket.io-client';
 class Store extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      _cachedRequests: {}
-    }
+    this.state = props.store;
   }
 
   addToStore(key, value) {
@@ -32,7 +30,7 @@ export const Agent = (props) => {
     currentCallback(data);
   });
 
-  store = new Store;
+  store = new Store(props);
   return store;
 }
 
