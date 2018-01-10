@@ -86,6 +86,7 @@ module.exports = function agent(server, db, queries) {
     socket.on('query', data => {
       handleQuery(data.key, data.value, socket, data.counter);
     });
+    
     // Search through each key in subscribedSockets object and look for matching socket
     // Remove matching socket from each of the arrays corresponding to the key
     socket.on('disconnect', () => {
