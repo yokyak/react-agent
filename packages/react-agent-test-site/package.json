@@ -1,0 +1,36 @@
+{
+  "name": "skrale",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "build": "webpack -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "chalk": "^2.3.0",
+    "css-loader": "^0.28.7",
+    "express": "^4.16.2",
+    "html-webpack-plugin": "^2.30.1",
+    "nodemon": "^1.14.1",
+    "pg": "^6.4.2",
+    "pg-hstore": "^2.3.2",
+    "react": "^16.2.0",
+    "react-agent": "0.0.1",
+    "react-agent-server": "0.0.1",
+    "react-controller": "^1.2.2",
+    "react-dom": "^16.2.0",
+    "sequelize": "^4.28.7",
+    "socket.io": "^2.0.4",
+    "socket.io-client": "^2.0.4",
+    "style-loader": "^0.19.1",
+    "webpack": "^3.10.0"
+  }
+}
