@@ -68,9 +68,11 @@ module.exports = function agent(server, db, queries) {
         if (subscribedSockets[data.key]) {
           if (!subscribedSockets[data.key].includes(socket)) {
             subscribedSockets[data.key].push(socket);
+            console.log(chalk.red('subscribedSockets is ' + Object.keys(subscribedSockets).length));
           }
         } else {
           subscribedSockets[data.key] = [socket];
+          console.log(chalk.green('subscribedSockets is ' + Object.keys(subscribedSockets).length));
         }
         if (data.runQueries) {
           handleSet(data.key, data.value, socket, data.counter);
@@ -83,6 +85,18 @@ module.exports = function agent(server, db, queries) {
 
     socket.on('query', data => {
       handleQuery(data.key, data.value, socket, data.counter);
+    });
+    // Search through each key in subscribedSockets object and look for matching socket
+    // Remove matching socket from each of the arrays corresponding to the key
+    socket.on('disconnect', () => {
+      Object.keys(subscribedSockets).forEach(key => {
+        let i = subscribedSockets[key].indexOf(socket);
+        if (i > -1) {
+          let arr = subscribedSockets[key].slice();
+          arr.splice(i, 1);
+          subscribedSockets[key] = arr;
+        }
+      });
     });
   });
 };
