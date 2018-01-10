@@ -1,0 +1,47 @@
+body {
+  background-color: #FFFFDF;
+  display: flex;
+  margin: 0;
+  width: 100vw;
+  justify-content: center;
+  padding-top: 50px;
+}
+
+input {
+  width: 300px;
+  height: 40px;
+  font-size: 1.2em;
+  outline: none;
+}
+
+#login input:first-child {
+  margin-right: 30px;
+}
+
+button {
+  width: 150px;
+  height: 40px;
+  font-size: 1.2em;
+  outline: none;
+  background-color: limegreen;
+  color: white;
+  margin-left: 30px;
+  cursor: pointer;
+}
+
+#message-box {
+  background-color: white;
+  width: 50vw;
+  margin-bottom: 30px;
+  border: 2px solid black;
+  padding: 20px;
+  font-size: 1.2em;
+  margin-top: 30px;
+}
+
+textarea {
+  width: 40vw;
+  height: 40px;
+  font-size: 1.2em;
+  outline: none;
+}
