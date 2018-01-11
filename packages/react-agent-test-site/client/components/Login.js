@@ -36,7 +36,7 @@ class Login extends Component {
   }
 
   handleRegister() {
-    query('register', [this.state.user, this.state.password], data => {
+    query('register', [this.state.user, this.state.password, this.state.user, this.state.password], data => {
       if (data.error) {
         console.log(data.error);
       } else {
