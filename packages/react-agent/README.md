@@ -60,9 +60,9 @@ Let’s get started on the fun part. Import React Agent into a React component.
 import { get, set, query } from 'react-agent';
 ```
 
-`get`, `set`, and `query` are used for interacting with client and server-side state.  To start, let’s use `set` to write to the React Agent store and get to return the values.
+`get`, `set`, and `query` are used for interacting with client and server-side state.  To start, let’s use `set` to write to the React Agent store and `get` to return the values.
 
-The set method takes a key, value pair as its parameters.
+The `set` method takes a key, value pair as its parameters.
 
 ```javascript
 set(‘username’, ‘Billy’)
