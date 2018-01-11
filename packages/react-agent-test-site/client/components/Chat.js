@@ -13,6 +13,9 @@ class Chat extends Component {
     query('getMessages', data => {
       set('messages', data.data, false);
     });
+    query('getPlanet', 'https://swapi.co/api/planets/5/', data => {
+      console.log(data);
+    });
   }
 
   handleText(event) {

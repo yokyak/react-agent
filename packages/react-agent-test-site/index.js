@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const agent = require('./../react-agent-server');
+const request = require('request');
 
 app.use(express.static(path.resolve(__dirname, 'build')));
 
@@ -38,6 +39,15 @@ const queries = {
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no'
   },
+  getPlanet: {
+    callback: (resolve, reject, values) => {
+      const url = values[0];
+      request(url, (error, response, body) => {
+        if (error) reject(error);
+        else resolve(body);
+      });
+    }
+  }
 };
 
 agent(server, db, queries);

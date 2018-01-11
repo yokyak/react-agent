@@ -19,7 +19,7 @@ class Login extends Component {
   }
 
   handleLogin() {
-    query('login', data => {
+    query('login', [this.state.user, this.state.password], data => {
       if (data.validationError) {
         alert(JSON.stringify(data.validationError));
       } else if (data.databaseError) {
@@ -32,18 +32,18 @@ class Login extends Component {
           set('id', data.id);
         }
       }
-    }, [this.state.user, this.state.password], {val1: true, val2: true});
+    }, {val1: true, val2: true});
   }
 
   handleRegister() {
-    query('register', data => {
+    query('register', [this.state.user, this.state.password], data => {
       if (data.error) {
         console.log(data.error);
       } else {
         set('username', data.username);
         set('id', data.id);
       }
-    }, [this.state.user, this.state.password, this.state.user, this.state.password]);
+    });
   }
 
   render() {

@@ -6,7 +6,7 @@ This is the server-side library for React Agent where SQL queries can be written
 const agent = require('react-agent-server');
 ```
 
-The `agent` function is called with a server, database and query object. 
+The `agent` function is called with a server, database and queries object. 
 
 ```javascript
 const server = app.listen(3000);
@@ -26,7 +26,7 @@ const queries = {
   }
 };
 
-agent(server, db, queries);
+agent(server, database, queries);
 ```
 With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` key for `getMessages` will be ran. 
 
@@ -79,3 +79,19 @@ login: {
 ```
 
 The `request` object passed into each function is from the last parameter of the client-side `query` call. 
+
+Arbitrary functions can also be ran without needing a SQL query. If all that's defined on a key is a callback, that callback will be passed a `resolve` and `reject` function (from a `new Promise` within the library) along with any values passed in from the client-side `query` call. The use of Promises makes dealing with asynchronous code in the callback easy.  
+
+```javascript
+const queries = {
+  getPlanet: {
+    callback: (resolve, reject, values) => {
+      const url = values[0];
+      request(url, (error, response, body) => {
+        if (error) reject(error);
+        else resolve(body);
+      });
+    }
+  }
+};
+```
