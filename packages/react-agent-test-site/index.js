@@ -20,22 +20,23 @@ const queries = {
   messages: {
     query: 'INSERT INTO posts (chatmessage, user_id) VALUES (?, ?)',
     response: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
-    callback: response => (response[0]),
+    callback: response => response[0]
   },
   getMessages: {
     query: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
-    callback: response => ({ data: response[0] }),
+    callback: response => ({ data: response[0] })
   },
   register: {
     query: 'INSERT INTO users (username, password) VALUES (?, ?); SELECT username, _id FROM users WHERE username = ? AND password = ?',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
-    errorMessage: 'yikes',
+    errorMessage: 'yikes'
   },
   login: {
+    pre: [request => request.val1, request => request.val2],
     query: 'SELECT username, _id FROM users WHERE username = ? AND password = ?',
     // in documentation recommend to console.log response to see db results
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
-    errorMessage: 'oh no',
+    errorMessage: 'oh no'
   },
 };
 
