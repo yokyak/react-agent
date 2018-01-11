@@ -15,7 +15,7 @@ The popular conceptualization of state management stores state in two places: da
 Install the package:
 
 ```bash
-npm install react-agent-server --save
+npm install react-agent --save
 ```
 
 See [React Agent](https://github.com/yokyak/react-agent/tree/master/packages/react-agent) for information about client-side set-up.
