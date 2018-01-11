@@ -12,6 +12,21 @@ The popular conceptualization of state management stores state in two places: da
 
 ## Getting Started
 
-See [React Agent Server](https://github.com/yokyak/react-agent/tree/master/packages/react-agent-server) for information about server-side set-up.
+Install the package:
+
+```bash
+npm install react-agent-server --save
+```
 
 See [React Agent](https://github.com/yokyak/react-agent/tree/master/packages/react-agent) for information about client-side set-up.
+
+
+
+Install the package:
+
+```bash
+npm install react-agent-server --save
+```
+
+See [React Agent Server](https://github.com/yokyak/react-agent/tree/master/packages/react-agent-server) for information about server-side set-up.
+
