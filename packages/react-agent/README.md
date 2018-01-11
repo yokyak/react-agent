@@ -18,8 +18,8 @@ This guide is focused on client-side usage of React Agent, although it includes 
 
 ## Installing
 Install the package:
-```javascript
-npm install react-agent
+```bash
+npm install react-agent --save
 ```
 
 ## How to use
