@@ -102,9 +102,9 @@ module.exports = function agent(server, db, queries) {
     // Remove matching socket from each of the arrays corresponding to the key
     socket.on('disconnect', () => {
       Object.keys(subscribedSockets).forEach(key => {
-        let i = subscribedSockets[key].indexOf(socket);
+        const i = subscribedSockets[key].indexOf(socket);
         if (i > -1) {
-          let arr = subscribedSockets[key].slice();
+          const arr = subscribedSockets[key].slice();
           arr.splice(i, 1);
           subscribedSockets[key] = arr;
         }
