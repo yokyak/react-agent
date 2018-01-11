@@ -46,6 +46,7 @@ const initialStore = {
  second: false,
  third: 'ok'
 };
+
 render(
  <Agent store={initialStore}>
    <App />
