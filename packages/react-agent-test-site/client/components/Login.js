@@ -20,9 +20,10 @@ class Login extends Component {
 
   handleLogin() {
     query('login', data => {
-      if (data.error) {
-        console.log(JSON.stringify(data.error));
-        alert('There was a problem with the database.');
+      if (data.validationError) {
+        alert(JSON.stringify(data.validationError));
+      } else if (data.databaseError) {
+        alert(JSON.stringify(data.databaseError));
       } else {
         if (data.length === 0) {
           alert('incorrect login');
@@ -31,7 +32,7 @@ class Login extends Component {
           set('id', data.id);
         }
       }
-    }, [this.state.user, this.state.password]);
+    }, [this.state.user, this.state.password], {val1: true, val2: true});
   }
 
   handleRegister() {

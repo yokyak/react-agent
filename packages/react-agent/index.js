@@ -82,9 +82,9 @@ export const set = (key, value, runQueries = true, callback) => {
   }
 };
 
-export const query = (key, callback, value) => {
+export const query = (key, callback, value, request = {}) => {
   counter += 1;
-  if (server) socket.emit('query', { key, value, counter });
+  if (server) socket.emit('query', { key, value, counter, request });
 
-  cache[counter] = { method: 'query', arguments: { key, value, counter }, callback };
+  cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback };
 };

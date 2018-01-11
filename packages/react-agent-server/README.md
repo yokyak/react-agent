@@ -30,14 +30,14 @@ agent(server, db, queries);
 ```
 With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` key for `getMessages` will be ran. 
 
-A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client.
+A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Calling `console.log` on the response would be the easiest way to see the SQL results. 
 
 ```javascript
 const queries = {
   getMessages: {
-    query: 'SELECT * FROM posts'
-  },
-  callback: response => ({ messages: response[0] })
+    query: 'SELECT * FROM posts',
+    callback: response => ({ messages: response[0] })
+  }
 };
 ```
 
@@ -46,10 +46,10 @@ In the event of a database error, a custom error message can be sent back to the
 ```javascript
 const queries = {
   getMessages: {
-    query: 'SELECT * FROM posts'
-  },
-  callback: response => ({ messages: response[0] }),
-  errorMessage: 'Problem retrieving messages.'
+    query: 'SELECT * FROM posts',
+    callback: response => ({ messages: response[0] }),
+    errorMessage: 'Problem retrieving messages.'
+  }
 };
 ```
 In the react-agent client-side script, any call to `set` will by default also look for the same key on the server, much like `query`. However, calls to `set` also subscribe to a specific SQL query under the same key that can be triggered by other clients. This SQL query is the value for `response`. 
@@ -67,3 +67,15 @@ const queries = {
 ```
 
 Upon calling `set('messages', message)` on the client-side, the client is now also subscribed to the `response` SQL query. If any other clients call `set('messages', message)` past that point, they are then pushed the response from that SQL query. This is what allows for real-time SQL updates to be pushed to clients. In this situation, the callback is actually performed on the response from `response`.
+
+A `pre` key can be used to run any number of functions before the SQL query is ran. If any of these functions return false, a `validationError` will be attached as a property to the object passed into the client's `query` callback and the SQL query will not run. If all functions return true, everything will run as normal. 
+
+```javascript
+login: {
+    pre: [request => request.val1, request => request.val2],
+    query: 'SELECT username, _id FROM users WHERE username = ? AND password = ?',
+    callback: response => ({ username: response[0][0].username, id: response[0][0]._id })
+  }
+```
+
+The `request` object passed into each function is from the last parameter of the client-side `query` call. 
