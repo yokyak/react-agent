@@ -52,11 +52,10 @@ export const set = (key, value, runQueries = true, callback) => {
   }
 };
 
-export const query = (key, callback, value) => {
+export const query = (key, callback, value, request = {}) => {
   counter += 1;
-  socket.emit('query', { key, value, counter });
-
-  cache[counter] = { method: 'query', arguments: { key, value, counter }, callback };
+  socket.emit('query', { key, value, counter, request });
+  cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback };
 };
 
 socket.on('local', () => {

@@ -41,23 +41,27 @@ module.exports = function agent(server, db, queries) {
     });
   };
 
-  const handleQuery = (key, value, socket, counter) => {
-    sequelize.query(queries[key].query,
-      { replacements: value }
-    ).then(response => {
-      if (queries[key].callback) {
-        socket.emit('queryResponse', { response: queries[key].callback(response), key, counter });
-      } else {
-        socket.emit('queryResponse', { response: response, key, counter });
-      }
-    }).catch(error => {
-      console.log(chalk.red('Error with database: '), chalk.yellow(error));
-      if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
-      } else {
-        socket.emit('queryResponse', { error: 'Error with database', counter });
-      }
-    });
+  const handleQuery = (key, value, socket, counter, request) => {
+    if (!queries[key].pre || queries[key].pre.every(f => f(request))) {
+      sequelize.query(queries[key].query,
+        { replacements: value }
+      ).then(response => {
+        if (queries[key].callback) {
+          socket.emit('queryResponse', { response: queries[key].callback(response), key, counter });
+        } else {
+          socket.emit('queryResponse', { response: response, key, counter });
+        }
+      }).catch(error => {
+        console.log(chalk.red('Error with database: '), chalk.yellow(error));
+        if (queries[key].errorMessage) {
+          socket.emit('queryResponse', { response: { databaseError: queries[key].errorMessage }, counter });
+        } else {
+          socket.emit('queryResponse', { response: { databaseError: 'Error with database' }, counter });
+        }
+      });
+    } else {
+      socket.emit('queryResponse', { response: { validationError: 'react-agent: Not all server validations were passed.' }, counter });
+    }
   };
 
   io.on('connection', socket => {
@@ -82,7 +86,7 @@ module.exports = function agent(server, db, queries) {
     });
 
     socket.on('query', data => {
-      handleQuery(data.key, data.value, socket, data.counter);
+      handleQuery(data.key, data.value, socket, data.counter, data.request);
     });
   });
 };
