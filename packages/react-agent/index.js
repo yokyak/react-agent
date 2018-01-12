@@ -89,3 +89,8 @@ export const query = (key, value, callback, request = {}) => {
   if (server) socket.emit('query', { key, value, counter, request });
   cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback };
 };
+
+// This method is currently only used for the Mocha/Chai tests
+export const getStore = () => {
+  return store;
+}
