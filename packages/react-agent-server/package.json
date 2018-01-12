@@ -2,9 +2,10 @@
   "name": "react-agent-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./distribution/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel source --out-dir distribution",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,8 @@
   },
   "homepage": "https://github.com/yokyak/react-agent-server#readme",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "chalk": "^2.3.0",
     "mysql2": "^1.5.1",
     "pg": "^6.4.2",
@@ -25,5 +28,8 @@
     "socket.io": "^2.0.4",
     "sqlite3": "^3.1.13",
     "tedious": "^2.1.5"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
   }
 }

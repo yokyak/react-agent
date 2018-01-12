@@ -1,4 +1,6 @@
-module.exports = function agent(server, db, queries) {
+require('babel-polyfill');
+
+module.exports = (server, db, queries) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const Sequelize = require('sequelize');
