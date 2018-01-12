@@ -8,7 +8,7 @@ import './style.css';
 class App extends Component {
   render() {
     return(
-      <div>
+      <div id='app'>
         <Login />
         <Chat />
       </div>
