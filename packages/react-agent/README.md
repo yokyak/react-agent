@@ -60,9 +60,9 @@ Let’s get started on the fun part. Import React Agent into a React component.
 import { get, set, query } from 'react-agent';
 ```
 
-`get`, `set`, and `query` are used for interacting with client and server-side state.  To start, let’s use `set` to write to the React Agent store and get to return the values.
+`get`, `set`, and `query` are used for interacting with client and server-side state.  To start, let’s use `set` to write to the React Agent store and `get` to return the values.
 
-The set method takes a key, value pair as its parameters.
+The `set` method takes a key, value pair as its parameters.
 
 ```javascript
 set(‘username’, ‘Billy’)
@@ -89,7 +89,7 @@ When `‘Billy’` is passed as the second parameter in set, it is included in t
  set(‘username’, [‘Billy’, ‘32’, ‘Los Angeles’])
  ```
 
-`set` takes an optional callback function as the fourth parameter. Rather than modifying React Agent state with key-value pairs, it allows for more nuanced control the state. The callback is used similarly to React’s [setState function](https://reactjs.org/docs/react-component.html#setstate).  However, whereas React’s setState accepts previous state as an argument, React Agent’s callback accepts an argument (i.e. prevValue) that represents the previous value of the specified key. The returned value of the callback should be the new value of the key.
+`set` takes an optional callback function as the fourth parameter. Rather than modifying React Agent state with key-value pairs, it allows for more nuanced control the state. The callback is used similarly to React’s [setState function](https://reactjs.org/docs/react-component.html#setstate).  However, whereas React’s setState accepts previous state as an argument, React Agent’s callback accepts an argument (i.e. `prevValue`) that represents the previous value of the specified key. The returned value of the callback should be the new value of the key.
 
 ```javascript
  set(‘username’, [‘Billy’, ‘32’, ‘Los Angeles’], true, prevValue => {
@@ -97,7 +97,7 @@ When `‘Billy’` is passed as the second parameter in set, it is included in t
  });
  ```
 
-In addition to `set` and `get`, React Agent includes the function `query`, which interacts with the server’s database. `query` is similar to set in that it takes matching keys and associated values as arguments but differs in functionality in two ways: 1) a typical `query` expects a response from the server, and includes a callback function to handle the server’s response. 2) `query` does not change the client state, so it must be used in conjunction with `set` to update React Agent’s state.
+In addition to `set` and `get`, React Agent includes the function `query`, which interacts with the server’s database. `query` is similar to set in that it takes matching keys and associated values as arguments but differs in functionality in two ways: 1) a typical `query` expects a response from the server, and includes a callback function to handle the server’s response. 2) `query` does not change the client state, so it can be used in conjunction with `set` to update React Agent’s state.
 
 ```javascript
 query('register', [this.state.user, this.state.password], data => {
@@ -109,8 +109,8 @@ query('register', [this.state.user, this.state.password], data => {
 });
 ```
 
-Above, the query with the key `'register'` is running on the server side with the given values `this.state.user`  and `this.state.password`. In the callback, `set` is invoked with the value `data.userID` from the server response to save `userID` to React Agent state.
+Above, the `query` with the key `'register'` is running on the server side with the given values `this.state.user`  and `this.state.password`. In the callback, `set` is invoked with the value `data.userID` from the server response to save `userID` to React Agent state.
 
-_Note: the second parameter of values is an optional argument. If you do not include values, simply include the callback as the second parameter._
+For `query`, the second parameter of values is an optional argument. If you do not include values, simply include the callback as the second parameter.
 
-_Note: while React Agent can be used a store for state, it can also be used without conflict alongside other state management tools such as Redux or React component state._
+_Note: while React Agent can be used as a store for state, it can also be used without conflict alongside other state management tools such as Redux or React component state._

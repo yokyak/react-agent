@@ -12,10 +12,15 @@ class Chat extends Component {
   componentDidMount() {
     query('getMessages', data => {
       set('messages', data.data, false);
+      this.scrollToBottom();
     });
     query('getPlanet', 'https://swapi.co/api/planets/5/', data => {
       console.log(data);
     });
+  }
+
+  componentDidUpdate() {
+    this.scrollToBottom();
   }
 
   handleText(event) {
@@ -27,6 +32,7 @@ class Chat extends Component {
       set('messages', [this.state.text, get('id')], true, previous => {
         return [...previous, { chatmessage: this.state.text, date: Date.now(), username: get('username') }];
       });
+      this.setState({ text: '' })
     } else {
       alert('You must be logged in to comment.');
     }
@@ -44,15 +50,24 @@ class Chat extends Component {
     });
   }
 
+  scrollToBottom() {
+    this.messagesEnd.scrollIntoView({ behavior: 'instant' });
+  }
+
   render() {
     const messages = get('messages');
     return (
       <div id='chat'>
         <div id='message-box'>
           {messages ? this.handleMessages(messages) : 'no messages'}
+          <div style={{ float: 'left', clear: 'both' }}
+            ref={(el) => { this.messagesEnd = el; }}>
+          </div>
         </div>
-        <textarea value={this.state.text} onChange={this.handleText.bind(this)} type='text'></textarea>
-        <button onClick={this.handleSend.bind(this)}>Send</button>
+        <div id='text-area'>
+          <textarea value={this.state.text} onChange={this.handleText.bind(this)} type='text'></textarea>
+          <button onClick={this.handleSend.bind(this)}>Send</button>
+        </div>
       </div>
     );
   }
