@@ -33,7 +33,7 @@ See [React Agent Server](https://github.com/yokyak/react-agent/tree/master/packa
 
 ## Contributors
 
-### Authors 
+### Authors
 
 * **Tom Rosenblatt** - [https://github.com/tskittles](https://github.com/tskittles)
 
@@ -42,3 +42,7 @@ See [React Agent Server](https://github.com/yokyak/react-agent/tree/master/packa
 * **Henry Au** - [https://github.com/hhau01](https://github.com/hhau01)
 
 * **Andrew Harris** - [https://github.com/didrio](https://github.com/didrio)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
