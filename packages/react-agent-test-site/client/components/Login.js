@@ -49,8 +49,8 @@ class Login extends Component {
   render() {
     if (get('username')) {
       return (
-        <div>
-          You are logged in as: <strong>{get('username')}</strong>
+        <div id='login'>
+          You are logged in as......<strong>{get('username')}</strong>
         </div>
       );
     } else {
