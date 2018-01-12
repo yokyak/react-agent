@@ -1,0 +1,29 @@
+{
+  "name": "react-agent",
+  "version": "0.0.4",
+  "description": "React Agent synchronizes client-side state and server-side data.  It can be included in any React project without conflict with other state management tools or REST APIs.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yokyak/react-agent.git"
+  },
+  "author": "Andrew Harris",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yokyak/react-agent/issues"
+  },
+  "homepage": "https://github.com/yokyak/react-agent#readme"
+}
