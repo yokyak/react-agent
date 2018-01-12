@@ -2,9 +2,9 @@ const chai = require('chai');
 const should = chai.should();
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
-import React, { Component } from '../packages/react-agent/node_modules/react';
+import React, { Component } from '../react-agent/node_modules/react';
 import { render } from 'react-dom';
-import { Agent, get, set, getStore } from '../packages/react-agent';
+import { Agent, get, set, getStore } from '../react-agent';
 
 describe('React Agent Client', () => {
 
