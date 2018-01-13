@@ -17,6 +17,13 @@ const db = {
   port: 5432
 };
 
+const store = {
+  messages: {
+    onSet: 'INSERT INTO posts (chatmessage, user_id) VALUES (?, ?)',
+    emit: 'getMessages',
+  }
+}
+
 const queries = {
   messages: {
     query: 'INSERT INTO posts (chatmessage, user_id) VALUES (?, ?)',
