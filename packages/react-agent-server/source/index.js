@@ -1,5 +1,5 @@
 require('babel-polyfill');
-/*eslint-disable*/
+
 module.exports = (server, db, queries, sets) => {
   const socketio = require('socket.io');
   const io = socketio(server);
