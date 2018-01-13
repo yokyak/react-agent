@@ -11,7 +11,7 @@ class Chat extends Component {
 
   async componentDidMount() {
     const data = await query('getMessages', null, { cookie: '3098ur03u3ff' });
-    set('messages', data.data, false);
+    set('messages', data.data);
     this.scrollToBottom();
     query('getPlanet', 'https://swapi.co/api/planets/5/', data => {
       console.log(data);
@@ -28,9 +28,10 @@ class Chat extends Component {
 
   handleSend() {
     if (get('id')) {
-      set('messages', [this.state.text, get('id')], true, previous => {
-        return [...previous, { chatmessage: this.state.text, date: Date.now(), username: get('username') }];
-      });
+      set('messages',
+        [...get('messages'), { chatmessage: this.state.text, date: Date.now(), username: get('username') }],
+        { message: this.state.text, id: get('id'), cookie: '123' }
+      );
       this.setState({ text: '' })
     } else {
       alert('You must be logged in to comment.');

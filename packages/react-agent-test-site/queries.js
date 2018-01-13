@@ -2,7 +2,11 @@ const request = require('request');
 
 const store = {
   messages: {
-    onSet: 'INSERT INTO posts (chatmessage, user_id) VALUES (|message|, |userid|)',
+    pre: [request => {
+      if (request.cookie === '123') return request;
+      else return false;
+    }],
+    onSet: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $userid)',
     emit: 'getMessages'
   }
 };
@@ -18,13 +22,13 @@ const queries = {
     }
   },
   register: {
-    query: 'INSERT INTO users (username, password) VALUES (|username|, |password|); SELECT username, _id FROM users WHERE username = |username| AND password = |password|',
+    query: 'INSERT INTO users (username, password) VALUES ($username, $password); SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'yikes'
   },
   login: {
-    pre: [request => request.val1, request => request.val2],
-    query: 'SELECT username, _id FROM users WHERE username = |username| AND password = |password|',
+    assert: [request => request.val1, request => request.val2],
+    query: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no'
   },

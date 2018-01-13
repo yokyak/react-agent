@@ -39,10 +39,7 @@ export const Agent = (props) => {
     });
 
     socket.on('response', (data) => {
-      if (data.key) {
-        set(data.key, data.response, false);
-      }
-
+      if (data.key) store.addToStore(data.key, data.response);
       delete cache[data.counter];
     });
 
@@ -63,37 +60,27 @@ export const get = (key) => {
   return store.state[key];
 }
 
-export const set = (key, value, runQueries = true, callback) => {
-  if (callback) {
-    const oldState = store.state[key];
-    store.addToStore(key, callback(oldState));
-  } else {
-    store.addToStore(key, value);
-  }
-
-  if (runQueries) {
+export const set = (key, value, serverObj) => {  
+  store.addToStore(key, value);
+  if (serverObj) {
     counter += 1;
-
-    if (server) socket.emit('set', { key, value, runQueries, counter });
-
+    if (server) socket.emit('set', { key, value, serverObj, counter });
     cache[counter] = {
-      method: 'set', arguments: { key, value, runQueries, counter }, callback,
+      method: 'set', arguments: { key, value, serverObj, counter }
     };
   }
 };
 
-export const query = (key, value, callback, request = {}) => {
+export const query = (key, serverObj, callback) => {
   counter += 1;
-  if (server) socket.emit('query', { key, value, counter, request });
-  if (typeof value !== 'function' && typeof callback !== 'function') {
-    if (callback) request = callback;
+  if (server) socket.emit('query', { key, serverObj, counter });
+  if (typeof serverObj !== 'function' && typeof callback !== 'function') {
     return new Promise((resolve, reject) => {
-      cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback: resolve };
+      cache[counter] = { method: 'query', arguments: { key, value, serverObj, counter }, callback: resolve };
     });
   } else {
-    if (typeof value === 'function') callback = value;
-    else if (!Array.isArray(value)) value = [value];
-    cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback };
+    if (typeof serverObj === 'function') callback = serverObj;
+    cache[counter] = { method: 'query', arguments: { key, serverObj, counter }, callback };
   }
 };
 

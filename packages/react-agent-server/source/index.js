@@ -1,32 +1,37 @@
 require('babel-polyfill');
 
-module.exports = (server, db, queries) => {
+module.exports = (server, database, store, queries) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const Sequelize = require('sequelize');
   const chalk = require('chalk');
   const Op = Sequelize.Op;
 
-  const sequelize = new Sequelize(db.name, db.user, db.password, {
-    dialect: db.dialect,
-    host: db.host,
-    port: db.port,
+  const sequelize = new Sequelize(database.name, database.user, database.password, {
+    dialect: database.dialect,
+    host: database.host,
+    port: database.port,
     operatorsAliases: Op
   });
 
   const subscribedSockets = {};
 
-  const handleSet = (key, value, socket, counter) => {
-    sequelize.query(queries[key].query,
+  const handleSet = (key, value, serverValue, assertObject, counter, socket) => {
+    if (!store[key].assert || store[key].assert.every(f => f(assertObject))) {
+
+    } else {
+
+    }
+    sequelize.query(store[key].query,
       { replacements: value }
     ).then(response => {
-      if (queries[key].response) {
-        sequelize.query(queries[key].response,
+      if (store[key].response) {
+        sequelize.query(store[key].response,
           { replacements: [response] }
         ).then(secondResponse => {
           subscribedSockets[key].forEach(subscribedSocket => {
-            if (queries[key].callback) {
-              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse), key, counter });
+            if (store[key].callback) {
+              subscribedSocket.emit('response', { response: store[key].callback(secondResponse), key, counter });
             } else {
               subscribedSocket.emit('response', { response: secondResponse, key, counter });
             }
@@ -35,16 +40,16 @@ module.exports = (server, db, queries) => {
       }
     }).catch(error => {
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
-      if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
+      if (store[key].errorMessage) {
+        socket.emit('queryResponse', { error: store[key].errorMessage, counter });
       } else {
         socket.emit('queryResponse', { error: 'Error with database', counter });
       }
     });
   };
 
-  const handleQuery = (key, value, socket, counter, request) => {
-    if (!queries[key].pre || queries[key].pre.every(f => f(request))) {
+  const handleQuery = (key, value, socket, counter, assertObject) => {
+    if (!queries[key].assert || queries[key].assert.every(f => f(assertObject))) {
       if (queries[key].query) {
         sequelize.query(queries[key].query,
           { replacements: value }
@@ -79,25 +84,20 @@ module.exports = (server, db, queries) => {
     socket.emit('local');
 
     socket.on('set', data => {
-      if (queries[data.key]) {
-        if (subscribedSockets[data.key]) {
-          if (!subscribedSockets[data.key].includes(socket)) {
-            subscribedSockets[data.key].push(socket);
+      const { key, value, serverValue, assertObject, counter } = data;
+      if (queries[key] && serverValue) {
+        if (subscribedSockets[key]) {
+          if (!subscribedSockets[key].includes(socket)) {
+            subscribedSockets[key].push(socket);
           }
-        } else {
-          subscribedSockets[data.key] = [socket];
-        }
-        if (data.runQueries) {
-          handleSet(data.key, data.value, socket, data.counter);
-        }
-      } else {
+        } else subscribedSockets[key] = [socket];
+        handleSet(key, value, serverValue, assertObject, counter, socket);
         // Emiting response if data should not sync with database to remove from client-side offline cache
-        socket.emit('response', { counter: data.counter });
-      }
+      } else socket.emit('response', { counter: data.counter });
     });
 
     socket.on('query', data => {
-      handleQuery(data.key, data.value, socket, data.counter, data.request);
+      handleQuery(data.key, data.value, socket, data.counter, data.assertObject);
     });
 
     // Search through each key in subscribedSockets object and look for matching socket

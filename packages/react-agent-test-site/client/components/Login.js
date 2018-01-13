@@ -19,7 +19,7 @@ class Login extends Component {
   }
 
   handleLogin() {
-    query('login', [this.state.user, this.state.password], data => {
+    query('login', { user: this.state.user, password: this.state.password, val1: true, val2: true }, data => {
       if (data.validationError) {
         alert(JSON.stringify(data.validationError));
       } else if (data.databaseError) {
@@ -32,7 +32,7 @@ class Login extends Component {
           set('id', data.id);
         }
       }
-    }, {val1: true, val2: true});
+    });
   }
 
   handleRegister() {
