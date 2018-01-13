@@ -60,7 +60,6 @@ module.exports = (server, db, queries, sets) => {
   };
 
   const handleQuery = (key, value, socket, counter, request) => {
-    console.log('QUERIEsS', queriesSSS);
     if (!queries[key].pre || queries[key].pre.every(f => f(request))) {
       if (queries[key].query) {
         sequelize.query(queries[key].query,
