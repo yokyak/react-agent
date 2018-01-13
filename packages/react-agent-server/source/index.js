@@ -1,6 +1,6 @@
 require('babel-polyfill');
-
-module.exports = (server, db, queries) => {
+/*eslint-disable*/
+module.exports = (server, db, queries, sets) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const Sequelize = require('sequelize');
@@ -16,34 +16,51 @@ module.exports = (server, db, queries) => {
 
   const subscribedSockets = {};
 
-  const handleSet = (key, value, socket, counter) => {
-    sequelize.query(queries[key].query,
-      { replacements: value }
-    ).then(response => {
-      if (queries[key].response) {
-        sequelize.query(queries[key].response,
-          { replacements: [response] }
-        ).then(secondResponse => {
-          subscribedSockets[key].forEach(subscribedSocket => {
-            if (queries[key].callback) {
-              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse), key, counter });
-            } else {
-              subscribedSocket.emit('response', { response: secondResponse, key, counter });
-            }
-          });
+  const handleSet = (key, value, socket, counter, request) => {
+    if ( key in sets ) {
+      if (!sets[key].pre || sets[key].pre.every(f => f(request))) {
+        sequelize.query(sets[key].onSet,
+          { replacements: value }
+        ).then(response => {
+          if( sets[key].emit ) {
+            handleQuery(sets[key].emit, socket, counter, request);
+          }
         })
       }
-    }).catch(error => {
-      console.log(chalk.red('Error with database: '), chalk.yellow(error));
-      if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
-      } else {
-        socket.emit('queryResponse', { error: 'Error with database', counter });
+    }
+
+    else {
+      if (!sets[key].pre || sets[key].pre.every(f => f(request))) {
+        sequelize.query(queries[key].query,
+          { replacements: value }
+        ).then(response => {
+          if (queries[key].response) {
+            sequelize.query(queries[key].response,
+              { replacements: [response] }
+            ).then(secondResponse => {
+              subscribedSockets[key].forEach(subscribedSocket => {
+                if (queries[key].callback) {
+                  subscribedSocket.emit('response', { response: queries[key].callback(secondResponse), key, counter });
+                } else {
+                  subscribedSocket.emit('response', { response: secondResponse, key, counter });
+                }
+              });
+            })
+          }
+        }).catch(error => {
+          console.log(chalk.red('Error with database: '), chalk.yellow(error));
+          if (queries[key].errorMessage) {
+            socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
+          } else {
+            socket.emit('queryResponse', { error: 'Error with database', counter });
+          }
+        });
       }
-    });
+    }
   };
 
   const handleQuery = (key, value, socket, counter, request) => {
+    console.log('QUERIEsS', queriesSSS);
     if (!queries[key].pre || queries[key].pre.every(f => f(request))) {
       if (queries[key].query) {
         sequelize.query(queries[key].query,
@@ -79,7 +96,7 @@ module.exports = (server, db, queries) => {
     socket.emit('local');
 
     socket.on('set', data => {
-      if (queries[data.key]) {
+      if (queries[data.key] || sets[data.key]) {
         if (subscribedSockets[data.key]) {
           if (!subscribedSockets[data.key].includes(socket)) {
             subscribedSockets[data.key].push(socket);
@@ -88,7 +105,7 @@ module.exports = (server, db, queries) => {
           subscribedSockets[data.key] = [socket];
         }
         if (data.runQueries) {
-          handleSet(data.key, data.value, socket, data.counter);
+          handleSet(data.key, data.value, socket, data.counter, data.request);
         }
       } else {
         // Emiting response if data should not sync with database to remove from client-side offline cache
