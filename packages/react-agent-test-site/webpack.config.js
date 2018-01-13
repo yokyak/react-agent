@@ -8,7 +8,7 @@ const VENDOR_LIBS = [
 
 module.exports = {
   entry: {
-    bundle: './client/index.js',
+    bundle: ['babel-polyfill', './client/index.js'],
     vendor: VENDOR_LIBS
   },
   output: {
