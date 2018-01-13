@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "./node_modules/.bin/mocha --require babel-core/register client-tests.js",
-    "server": "mocha server-tests.js"
+    "server": "./node_modules/.bin/mocha --require babel-core/register server-tests.js"
   },
   "author": "Andrew Harris",
   "license": "ISC",
@@ -15,6 +15,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
     "chai": "^4.1.2",
+    "express": "^4.16.2",
     "jsdom": "^11.5.1",
     "mocha": "^4.1.0",
     "pg": "^7.4.1",
