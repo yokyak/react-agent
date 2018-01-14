@@ -65,14 +65,24 @@ export const emit = (key, request) => {
 };
 
 export const set = (...args) => {
-  if (args.length % 2 !== 0) throw new Error(`React Agent: 'set' must have an even amount of arguments.`);
-  else {
-    for (let i = 0; i < args.length; i = i + 2) {
-      store.addToStore(args[i], args[i + 1]);
-    }
+  for (let i = 0; i < args.length; i = i + 2) {
+    if (i + 1 === args.length) store.addToStore(args[i], null);
+    else store.addToStore(args[i], args[i + 1]);
   }
 };
 
-export const get = (key) => store.state[key];
+export const get = (...keys) => {
+  if (keys.length > 1) {
+    const results = {};
+    keys.forEach(key => results[key] = store.state[key]);
+    return results;
+  } else {
+    if (keys[0] === 'store') {
+      return store.state;
+    } else {
+      return store.state[keys[0]];
+    }
+  }
+};
 
 export const getStore = () => store;
