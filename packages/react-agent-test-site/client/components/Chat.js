@@ -34,7 +34,7 @@ class Chat extends Component {
 
   handleSend() {
     if (get('id')) {
-      const newMessage = { message: this.state.text, date: Date.now(), username: get('username') };
+      const newMessage = { chatmessage: this.state.text, date: Date.now(), username: get('username') };
       const oldMessages = get('messages');
       set('messages', [...oldMessages, newMessage]);
       query('postMessage', { message: this.state.text, id: get('id') })
