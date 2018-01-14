@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const agent = require('./../react-agent-server');
-const { store, queries } = require('./queries');
+const queries = require('./queries');
 
 app.use(express.static(path.resolve(__dirname, 'build')));
 
@@ -17,4 +17,4 @@ const database = {
   port: 5432
 };
 
-agent(server, database, store, queries);
+agent(server, database, queries);

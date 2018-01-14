@@ -18,6 +18,7 @@
   "homepage": "https://github.com/yokyak/react-agent#readme",
   "devDependencies": {
     "react": "^16.2.0",
-    "socket.io-client": "^2.0.4"
+    "socket.io-client": "^2.0.4",
+    "uuid": "^3.1.0"
   }
 }

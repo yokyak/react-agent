@@ -1,24 +1,16 @@
-const request = require('request');
+const req = require('request');
 
-const store = {
-  messages: {
-    pre: [request => {
-      if (request.cookie === '123') return request;
-      else return false;
-    }],
-    onSet: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $userid)',
-    emit: 'getMessages'
-  }
-};
-
-const queries = {
+module.exports = {
+  postMessage: {
+    query: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $id)'
+  },
   getMessages: {
     query: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
     callback: response => {
       response[0].sort((a, b) => {
         return new Date(a.date) - new Date(b.date);
       });
-      return { data: response[0] };
+      return { messages: response[0] };
     }
   },
   register: {
@@ -27,20 +19,26 @@ const queries = {
     errorMessage: 'yikes'
   },
   login: {
-    assert: [request => request.val1, request => request.val2],
+    pre: [
+      request => {
+        if (request.cookie1 === '123') return request;
+        else return false;
+      },
+      request => {
+        if (request.cookie2 === '456') return request;
+        else return false;
+      }
+    ],
     query: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no'
   },
   getPlanet: {
-    callback: (resolve, reject, values) => {
-      const url = values[0];
-      request(url, (error, response, body) => {
+    query: (resolve, reject, request) => {
+      req(request.url, (error, response, body) => {
         if (error) reject(error);
         else resolve(body);
       });
     }
   }
 };
-
-module.exports = { store, queries };

@@ -1,5 +1,6 @@
 import React, { Component, cloneElement } from 'react';
 import io from 'socket.io-client';
+const uuidv4 = require('uuid/v4');
 
 class Store extends Component {
   constructor(props) {
@@ -7,84 +8,71 @@ class Store extends Component {
     this.state = props.store;
   }
 
-  addToStore(key, value) {
-    this.setState({ [key]: value });
-  }
+  addToStore(key, value) { this.setState({ [key]: value }) }
 
-  render() {
-    return cloneElement(this.props.children, this.state);
-  }
+  render() { return cloneElement(this.props.children, this.state) }
 }
 
-let store;
-let socket;
-let counter = 0;
-let server = false;
+let store, socket = io.connect();
 const cache = {};
+const subscriptions = {};
+
+window.addEventListener('online', () => {
+  socket = io.connect();
+});
+
+socket.on('connect', () => {
+  Object.values(cache).forEach(({ key, request, queryId }) => {
+    socket.emit('query', { key, request, queryId });
+  });
+});
+
+socket.on('response', data => {
+  if (cache[data.queryId]) {
+    if (data.preError) cache[data.queryId].reject(data.preError);
+    else if (data.databaseError) cache[data.queryId].reject(data.databaseError);
+    else cache[data.queryId].resolve(data.response);
+    delete cache[data.queryId];
+  }
+});
+
+socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
 
 export const Agent = (props) => {
   store = new Store(props);
-  server = true;
-  if (props.server && props.server === 'false') server = false;
-  if (server) {
-    socket = io.connect();
-    window.addEventListener('online', () => {
-      socket = io.connect();
-    });
-
-    socket.on('local', () => {
-      Object.values(cache).forEach((value) => {
-        socket.emit(value.method, value.arguments);
-      });
-    });
-
-    socket.on('response', (data) => {
-      if (data.key) store.addToStore(data.key, data.response);
-      delete cache[data.counter];
-    });
-
-    socket.on('queryResponse', (data) => {
-      if (data.counter in cache) {
-        if (cache[data.counter].callback) {
-          cache[data.counter].callback(data.response);
-        }
-      }
-
-      delete cache[data.counter];
-    });
-  }
   return store;
 }
 
-export const get = (key) => {
-  return store.state[key];
-}
+export const query = (key, request) => {
+  const queryId = uuidv4();
+  socket.emit('query', { key, request, queryId });
+  return new Promise((resolve, reject) => {
+    cache[queryId] = { key, request, queryId, resolve, reject };
+  });
+};
 
-export const set = (key, value, serverObj) => {  
-  store.addToStore(key, value);
-  if (serverObj) {
-    counter += 1;
-    if (server) socket.emit('set', { key, value, serverObj, counter });
-    cache[counter] = {
-      method: 'set', arguments: { key, value, serverObj, counter }
-    };
+export const subscribe = (key, func) => {
+  socket.emit('subscribe', { key });
+  subscriptions[key] = { func };
+};
+
+export const emit = (key, request) => {
+  const queryId = uuidv4();
+  socket.emit('emit', { key, request, queryId });
+  return new Promise((resolve, reject) => {
+    cache[queryId] = { key, request, queryId, resolve, reject };
+  });
+};
+
+export const set = (...args) => {
+  if (args.length % 2 !== 0) throw new Error(`React Agent: 'set' must have an even amount of arguments.`);
+  else {
+    for (let i = 0; i < args.length; i = i + 2) {
+      store.addToStore(args[i], args[i + 1]);
+    }
   }
 };
 
-export const query = (key, serverObj, callback) => {
-  counter += 1;
-  if (server) socket.emit('query', { key, serverObj, counter });
-  if (typeof serverObj !== 'function' && typeof callback !== 'function') {
-    return new Promise((resolve, reject) => {
-      cache[counter] = { method: 'query', arguments: { key, value, serverObj, counter }, callback: resolve };
-    });
-  } else {
-    if (typeof serverObj === 'function') callback = serverObj;
-    cache[counter] = { method: 'query', arguments: { key, serverObj, counter }, callback };
-  }
-};
+export const get = (key) => store.state[key];
 
-// This method is currently only used for the Mocha/Chai tests
-export const getStore = () => {
-  return store;
-}
+export const getStore = () => store;
