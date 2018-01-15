@@ -9,11 +9,10 @@ class Chat extends Component {
     };
   }
 
-  componentDidMount() {
-    query('getMessages', data => {
-      set('messages', data.data, false);
-      this.scrollToBottom();
-    });
+  async componentDidMount() {
+    const data = await query('getMessages', null, { cookie: '3098ur03u3ff' });
+    set('messages', data.data, false);
+    this.scrollToBottom();
     query('getPlanet', 'https://swapi.co/api/planets/5/', data => {
       console.log(data);
     });

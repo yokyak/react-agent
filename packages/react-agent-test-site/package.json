@@ -34,6 +34,7 @@
     "webpack": "^3.10.0"
   },
   "devDependencies": {
+    "babel-polyfill": "^6.26.0",
     "request": "^2.83.0"
   }
 }
