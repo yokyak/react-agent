@@ -1,5 +1,6 @@
 import React, { Component, cloneElement } from 'react';
 import io from 'socket.io-client';
+const uuidv4 = require('uuid/v4');
 
 class Store extends Component {
   constructor(props) {
@@ -7,97 +8,81 @@ class Store extends Component {
     this.state = props.store;
   }
 
-  addToStore(key, value) {
-    this.setState({ [key]: value });
-  }
+  addToStore(key, value) { this.setState({ [key]: value }) }
 
-  render() {
-    return cloneElement(this.props.children, this.state);
-  }
+  render() { return cloneElement(this.props.children, this.state) }
 }
 
-let store;
-let socket;
-let counter = 0;
-let server = false;
+let store, socket = io.connect();
 const cache = {};
+const subscriptions = {};
+
+window.addEventListener('online', () => {
+  socket = io.connect();
+});
+
+socket.on('connect', () => {
+  Object.values(cache).forEach(({ key, request, queryId }) => {
+    socket.emit('query', { key, request, queryId });
+  });
+});
+
+socket.on('response', data => {
+  if (cache[data.queryId]) {
+    if (data.preError) cache[data.queryId].reject(data.preError);
+    else if (data.databaseError) cache[data.queryId].reject(data.databaseError);
+    else cache[data.queryId].resolve(data.response);
+    delete cache[data.queryId];
+  }
+});
+
+socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
 
 export const Agent = (props) => {
   store = new Store(props);
-  server = true;
-  if (props.server && props.server === 'false') server = false;
-  if (server) {
-    socket = io.connect();
-    window.addEventListener('online', () => {
-      socket = io.connect();
-    });
-
-    socket.on('local', () => {
-      Object.values(cache).forEach((value) => {
-        socket.emit(value.method, value.arguments);
-      });
-    });
-
-    socket.on('response', (data) => {
-      if (data.key) {
-        set(data.key, data.response, false);
-      }
-
-      delete cache[data.counter];
-    });
-
-    socket.on('queryResponse', (data) => {
-      if (data.counter in cache) {
-        if (cache[data.counter].callback) {
-          cache[data.counter].callback(data.response);
-        }
-      }
-
-      delete cache[data.counter];
-    });
-  }
   return store;
 }
 
-export const get = (key) => {
-  return store.state[key];
-}
+export const query = (key, request) => {
+  const queryId = uuidv4();
+  socket.emit('query', { key, request, queryId });
+  return new Promise((resolve, reject) => {
+    cache[queryId] = { key, request, queryId, resolve, reject };
+  });
+};
 
-export const set = (key, value, runQueries = true, callback) => {
-  if (callback) {
-    const oldState = store.state[key];
-    store.addToStore(key, callback(oldState));
-  } else {
-    store.addToStore(key, value);
-  }
+export const subscribe = (key, func) => {
+  socket.emit('subscribe', { key });
+  subscriptions[key] = { func };
+};
 
-  if (runQueries) {
-    counter += 1;
+export const emit = (key, request) => {
+  const queryId = uuidv4();
+  socket.emit('emit', { key, request, queryId });
+  return new Promise((resolve, reject) => {
+    cache[queryId] = { key, request, queryId, resolve, reject };
+  });
+};
 
-    if (server) socket.emit('set', { key, value, runQueries, counter });
-
-    cache[counter] = {
-      method: 'set', arguments: { key, value, runQueries, counter }, callback,
-    };
+export const set = (...args) => {
+  for (let i = 0; i < args.length; i = i + 2) {
+    if (i + 1 === args.length) store.addToStore(args[i], null);
+    else store.addToStore(args[i], args[i + 1]);
   }
 };
 
-export const query = (key, value, callback, request = {}) => {
-  counter += 1;
-  if (server) socket.emit('query', { key, value, counter, request });
-  if (typeof value !== 'function' && typeof callback !== 'function') {
-    if (callback) request = callback;
-    return new Promise((resolve, reject) => {
-      cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback: resolve };
-    });
+export const get = (...keys) => {
+  if (keys.length > 1) {
+    const results = {};
+    keys.forEach(key => results[key] = store.state[key]);
+    return results;
   } else {
-    if (typeof value === 'function') callback = value;
-    else if (!Array.isArray(value)) value = [value];
-    cache[counter] = { method: 'query', arguments: { key, value, counter, request }, callback };
+    if (keys[0] === 'store') {
+      return store.state;
+    } else {
+      return store.state[keys[0]];
+    }
   }
 };
 
-// This method is currently only used for the Mocha/Chai tests
-export const getStore = () => {
-  return store;
-}
+export const getStore = () => store;

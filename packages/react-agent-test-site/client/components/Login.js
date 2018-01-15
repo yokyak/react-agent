@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { set, get, query } from '../../../react-agent';
+import { get, set, query } from '../../../react-agent';
 
 class Login extends Component {
   constructor(props) {
@@ -10,40 +10,20 @@ class Login extends Component {
     };
   }
 
-  handleUser(event) {
-    this.setState({ user: event.target.value });
-  }
+  handleUser(event) { this.setState({ user: event.target.value }) }
 
-  handlePassword(event) {
-    this.setState({ password: event.target.value });
-  }
+  handlePassword(event) { this.setState({ password: event.target.value }) }
 
   handleLogin() {
-    query('login', [this.state.user, this.state.password], data => {
-      if (data.validationError) {
-        alert(JSON.stringify(data.validationError));
-      } else if (data.databaseError) {
-        alert(JSON.stringify(data.databaseError));
-      } else {
-        if (data.length === 0) {
-          alert('incorrect login');
-        } else {
-          set('username', data.username);
-          set('id', data.id);
-        }
-      }
-    }, {val1: true, val2: true});
+    query('login', { username: this.state.user, password: this.state.password, cookie1: '123', cookie2: '456' })
+      .then(data => { set('username', data.username, 'id', data.id) })
+      .catch(error => { alert(error) });
   }
 
   handleRegister() {
-    query('register', [this.state.user, this.state.password, this.state.user, this.state.password], data => {
-      if (data.error) {
-        console.log(data.error);
-      } else {
-        set('username', data.username);
-        set('id', data.id);
-      }
-    });
+    query('register', { username: this.state.user, password: this.state.password })
+      .then(data => { set('username', data.username, 'id', data.id) })
+      .catch(error => { alert(error) });
   }
 
   render() {

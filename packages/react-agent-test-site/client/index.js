@@ -6,6 +6,7 @@ import { Agent } from '../../react-agent';
 import './style.css';
 
 class App extends Component {
+
   render() {
     return(
       <div id='app'>

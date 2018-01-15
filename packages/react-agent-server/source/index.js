@@ -1,103 +1,45 @@
 require('babel-polyfill');
 
-module.exports = (server, db, queries) => {
+module.exports = (server, database, queries) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const Sequelize = require('sequelize');
   const chalk = require('chalk');
   const Op = Sequelize.Op;
 
-  const sequelize = new Sequelize(db.name, db.user, db.password, {
-    dialect: db.dialect,
-    host: db.host,
-    port: db.port,
+  const sequelize = new Sequelize(database.name, database.user, database.password, {
+    dialect: database.dialect,
+    host: database.host,
+    port: database.port,
     operatorsAliases: Op
   });
 
   const subscribedSockets = {};
 
-  const handleSet = (key, value, socket, counter) => {
-    sequelize.query(queries[key].query,
-      { replacements: value }
-    ).then(response => {
-      if (queries[key].response) {
-        sequelize.query(queries[key].response,
-          { replacements: [response] }
-        ).then(secondResponse => {
-          subscribedSockets[key].forEach(subscribedSocket => {
-            if (queries[key].callback) {
-              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse), key, counter });
-            } else {
-              subscribedSocket.emit('response', { response: secondResponse, key, counter });
-            }
-          });
-        })
-      }
-    }).catch(error => {
-      console.log(chalk.red('Error with database: '), chalk.yellow(error));
-      if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
-      } else {
-        socket.emit('queryResponse', { error: 'Error with database', counter });
-      }
-    });
-  };
-
-  const handleQuery = (key, value, socket, counter, request) => {
-    if (!queries[key].pre || queries[key].pre.every(f => f(request))) {
-      if (queries[key].query) {
-        sequelize.query(queries[key].query,
-          { replacements: value }
-        ).then(response => {
-          if (queries[key].callback) {
-            socket.emit('queryResponse', { response: queries[key].callback(response), key, counter });
-          } else {
-            socket.emit('queryResponse', { response: response, key, counter });
-          }
-        }).catch(error => {
-          console.log(chalk.red('Error with database: '), chalk.yellow(error));
-          if (queries[key].errorMessage) {
-            socket.emit('queryResponse', { response: { databaseError: queries[key].errorMessage }, counter });
-          } else {
-            socket.emit('queryResponse', { response: { databaseError: 'Error with database' }, counter });
-          }
-        });
-      } else {
-        const request = new Promise((resolve, reject) => {
-          queries[key].callback(resolve, reject, value);
-        });
-        request.then(response => {
-          socket.emit('queryResponse', { response, key, counter });
-        });
-      }
-    } else {
-      socket.emit('queryResponse', { response: { validationError: 'react-agent: Not all server validations were passed.' }, counter });
-    }
-  };
-
   io.on('connection', socket => {
-    socket.emit('local');
 
-    socket.on('set', data => {
-      if (queries[data.key]) {
-        if (subscribedSockets[data.key]) {
-          if (!subscribedSockets[data.key].includes(socket)) {
-            subscribedSockets[data.key].push(socket);
-          }
-        } else {
-          subscribedSockets[data.key] = [socket];
+    socket.on('subscribe', ({ key }) => {
+      if(subscribedSockets[key]) {
+        if (!subscribedSockets[key].includes(socket)) {
+          subscribedSockets[key].push(socket);
         }
-        if (data.runQueries) {
-          handleSet(data.key, data.value, socket, data.counter);
-        }
-      } else {
-        // Emiting response if data should not sync with database to remove from client-side offline cache
-        socket.emit('response', { counter: data.counter });
+      } else subscribedSockets[key] = [socket];
+    });
+
+    socket.on('emit', data => {
+      if (subscribedSockets[data.key]) {
+        runQuery(data.key, data.request, data.queryId, result => {
+          subscribedSockets[data.key].forEach(subSocket => {
+            subSocket.emit('subscriber', result);
+          });
+        });
       }
     });
 
     socket.on('query', data => {
-      handleQuery(data.key, data.value, socket, data.counter, data.request);
+      runQuery(data.key, data.request, data.queryId, result => {
+        socket.emit('response', result);
+      });
     });
 
     // Search through each key in subscribedSockets object and look for matching socket
@@ -113,4 +55,69 @@ module.exports = (server, db, queries) => {
       });
     });
   });
+
+  const runQuery = (key, request, queryId, callback) => {
+    if (queries[key].pre) {
+      for (let i = 0; i < queries[key].pre.length; i++) {
+        const returned = queries[key].pre[i](request);
+        if (returned === false) {
+          return callback({ preError: 'React Agent: Not all server pre functions passed.', queryId });
+        } else {
+          request = returned;
+        }
+      }
+    }
+
+    if (typeof queries[key].query !== 'function') {
+      const { string, replacements } = parseSQL(queries[key].query, request);
+      sequelize.query(string, { replacements })
+        .then(response => {
+          if (queries[key].callback) {
+            callback({ key, response: queries[key].callback(response), queryId });
+          } else {
+            callback({ key, response, queryId });
+          }
+        })
+        .catch(error => {
+          console.log(chalk.red('Error with database: '), chalk.yellow(error));
+          if (queries[key].errorMessage) {
+            callback({ databaseError: queries[key].errorMessage, queryId });
+          } else {
+            callback({ databaseError: 'Error with database', queryId });
+          }
+        });
+    } else {
+      const promise = new Promise((resolve, reject) => {
+        queries[key].query(resolve, reject, request);
+      });
+      promise.then(response => callback({ key, response, queryId }));
+    }
+  };
+
+  const parseSQL = (string, request) => {
+    const reg = new RegExp('[a-zA-Z0-9]+', 'g');
+    let foundVariable = false, start = 0, currentVariable = '';
+    const replacements = [];
+    for (let i = 0; i <= string.length; i++) {
+      let char = string[i];
+      if (foundVariable) {
+        if (i === string.length || !char.match(reg)) {
+          if (request[currentVariable]) {
+            replacements.push(request[currentVariable]);
+            string = string.substring(0, start) + '?' + string.substring(i, string.length);
+            i = i - (currentVariable.length - 1);
+          }
+          foundVariable = false;
+          currentVariable = '';
+        } else {
+          currentVariable += char;
+        }
+      }
+      if (char === '$') {
+        foundVariable = true;
+        start = i;
+      }
+    }
+    return { string, replacements };
+  };
 };
