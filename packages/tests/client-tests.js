@@ -12,7 +12,7 @@ describe('React Agent Client', () => {
   const dom = new JSDOM(`<!DOCTYPE html><div id='root'></div>`);
   
   render(
-    <Agent store={initialStore} server='false'>
+    <Agent store={initialStore}>
       <div>
         React Agent
       </div>

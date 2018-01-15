@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, query, set } from '../../../react-agent';
+import { get, set, query, subscribe, emit } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -9,29 +9,41 @@ class Chat extends Component {
     };
   }
 
-  async componentDidMount() {
-    const data = await query('getMessages', null, { cookie: '3098ur03u3ff' });
-    set('messages', data.data, false);
-    this.scrollToBottom();
-    query('getPlanet', 'https://swapi.co/api/planets/5/', data => {
-      console.log(data);
-    });
+  componentDidUpdate() { this.scrollToBottom() }
+
+  handleText(event) { this.setState({ text: event.target.value }) }
+
+  scrollToBottom() { this.messagesEnd.scrollIntoView({ behavior: 'instant' }) }
+
+  getPlanets() {
+    query('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
+      .then(data => { console.log(data) })
+      .catch(error => { alert(error) });
   }
 
-  componentDidUpdate() {
-    this.scrollToBottom();
-  }
-
-  handleText(event) {
-    this.setState({ text: event.target.value });
+  componentDidMount() {
+    query('getMessages')
+      .then(data => {
+        set('messages', data.messages);
+        this.scrollToBottom();
+        this.getPlanets();
+      })
+      .catch(error => { alert(error) });
+    subscribe('getMessages', data => set('messages', data.messages));
+    const { first, second, third } = get('first', 'second', 'third');
+    console.log(first, second, third);
+    console.log(get('store'));
   }
 
   handleSend() {
     if (get('id')) {
-      set('messages', [this.state.text, get('id')], true, previous => {
-        return [...previous, { chatmessage: this.state.text, date: Date.now(), username: get('username') }];
-      });
-      this.setState({ text: '' })
+      const newMessage = { chatmessage: this.state.text, date: Date.now(), username: get('username') };
+      const oldMessages = get('messages');
+      set('messages', [...oldMessages, newMessage]);
+      query('postMessage', { message: this.state.text, id: get('id') })
+        .then(data => { emit('getMessages') })
+        .catch(error => { set('messages', oldMessages) });
+      this.setState({ text: '' });
     } else {
       alert('You must be logged in to comment.');
     }
@@ -41,16 +53,12 @@ class Chat extends Component {
     return messages.map((message, i) => {
       return (
         <div key={i}>
-          {message.chatmessage}<br />
-          <em>{message.date}</em><br />
-          <strong>{message.username}</strong><br /><br />
+          { message.chatmessage }<br />
+          <em>{ message.date }</em><br />
+          <strong>{ message.username }</strong><br /><br />
         </div>
       );
     });
-  }
-
-  scrollToBottom() {
-    this.messagesEnd.scrollIntoView({ behavior: 'instant' });
   }
 
   render() {
