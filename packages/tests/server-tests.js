@@ -1,15 +1,19 @@
-// import { agent } from '../packages/react-agent-server';
+const { agentServer } = require('../react-agent-server');
+const { Agent, get, set, getStore } = require('../react-agent');
 
+const express = require('express');
 const pg = require('pg');
 const chai = require('chai');
 
+const app = express();
+const server = app.listen(3000, () => console.log('Server Connected'));
 const should = chai.should();
+
 
 const uri = 'postgres://nupdilwa:wKwvHTFrRlqfKgJAQ5088RaCIhDJLHz5@nutty-custard-apple.db.elephantsql.com:5432/nupdilwa';
 
 const client = new pg.Client(uri);
 client.connect();
-
 
 describe('React Agent Server', () => {
   const db = {
@@ -20,6 +24,8 @@ describe('React Agent Server', () => {
     host: 'nutty-custard-apple.db.elephantsql.com',
     port: 5432,
   };
+
+  let queries;
 
 
   before(() => {
@@ -103,12 +109,22 @@ describe('React Agent Server', () => {
   });
 
   describe('pre', () => {
-    it('should execute one function with arguments', (done) => {
-
+    it('should return error if a function returns false', (done) => {
+      queries = {
+        pre: (request) => { return request.cookie === 'testCookie' },
+        getStudentClasses: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
+      }
+      agentServer(server, db, queries);
     });
 
-    it('should execute multiple functions with arguments', (done) => {
-
+    it('should return error if one out of multiple functions returns false', (done) => {
+      queries = {
+        getStudentClasses: {
+          pre: [(request) => { return request.cookie === 'testCookie'}, (request) => { return request.id === 'testID' }],
+          query: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
+        }
+      };
+      agentServer(server, db, queries);
     });
 
     it('should return true if one function returns true', (done) => {
@@ -123,17 +139,27 @@ describe('React Agent Server', () => {
   describe('query', () => {
     it('should execute SQL command with ? replacement', (done) => {
 
+
+      queries = {
+        addStudent: {
+          query: `INSERT INTO students VALUES(?, ?)`
+        }
+      };
+      agentServer(server, db, queries);
+
+
     });
   });
 
   describe('set', () => {
     it('should return updated values to subscribed keys', (done) => {
 
-      // to be used later:
-      // SELECT s.name, c.name
-      //       FROM students s
-      //       INNER JOIN classes_students cs on s.id = cs.student_id
-      //       INNER JOIN classes c on c.id = cs.class_id;
+      queries = {
+        getStudentClasses: {
+          query: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
+        }
+      };
+      agentServer(server, db, queries);
     });
   });
 
@@ -156,12 +182,24 @@ describe('React Agent Server', () => {
   });
 
   describe('errorMessage', () => {
-    it('should overwrite default error message', (done) => {
 
+    it('should send default error to client', (done) => {
+      queries = {
+        addStudent: {
+          query: `INSERT INTO studens VALUES(?, ?)`
+        }
+      };
+      agentServer(server, db, queries);
     });
 
-    it('should send error to client', (done) => {
-
+    it('should overwrite default error message', (done) => {
+      queries = {
+        addStudent: {
+          query: `INSERT INTO studens VALUES(?, ?)`,
+          error: `Student entry error for query 'addStudent'`
+        }
+      };
+      agentServer(server, db, queries);
     });
   });
 });
