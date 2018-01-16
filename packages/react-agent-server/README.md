@@ -30,7 +30,7 @@ First `require` React Agent Server into your server-side script.
 const agent = require('react-agent-server');
 ```
 
-The `agent` function is called with a server, queries and database object.
+The `agent` method is called with a server, queries and database object.
 
 ```javascript
 const server = http.createServer(fn).listen(3000);
@@ -52,7 +52,7 @@ const database = {
 
 agent(server, queries, database);
 ```
-With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` key for `getMessages` will be ran ("SELECT * FROM posts").
+With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` property for `getMessages` will be ran ("SELECT * FROM posts").
 
 A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 
@@ -111,7 +111,7 @@ const queries = {
   getPlanet: {
     query: (resolve, reject, request) => {
       const url = request.url;
-      request(url, (error, response, body) => {
+      fetch(url, (error, response, body) => {
         if (error) reject(error);
         else resolve(body);
       });

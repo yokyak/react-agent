@@ -20,32 +20,6 @@ module.exports = (server, queries, database, logger = false) => {
 
   const subscribedSockets = {};
 
-  const parseSQL = (queryStr, request) => {
-    const replacements = [];
-    let string = '';
-    let grabStr = false;
-    for (let i = 0; i < queryStr.length; i++) {
-      if (queryStr[i] === '$') {
-        let str = '';
-        grabStr = true;
-        while (grabStr) {
-          str += queryStr[i + 1];
-          i++;
-          if (queryStr[i + 1] === ',' || queryStr[i + 1] === ')' || queryStr[i + 1] === ';' || queryStr[i + 1] === ' ' || i + 1 === queryStr.length) {
-            grabStr = false;
-            i++;
-          }
-        }
-        if (request[str]) {
-          replacements.push(request[str]);
-          string += '?';
-        } else string += `$${str}`;
-      }
-      if (queryStr[i] !== undefined) string += queryStr[i];
-    }
-    return { string, replacements };
-  };
-
   const runQuery = (key, request, queryId, callback) => {
     if (logger) {
       if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(queryId), '\n', chalk.bold(' From client: '), request);
@@ -65,8 +39,7 @@ module.exports = (server, queries, database, logger = false) => {
     if (logger && queries[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
 
     if (typeof queries[key].query !== 'function') {
-      const { string, replacements } = parseSQL(queries[key].query, request);
-      sequelize.query(string, { replacements })
+      sequelize.query(queries[key].query, { bind: request })
         .then((response) => {
           if (queries[key].callback) {
             callback({ key, response: queries[key].callback(response), queryId });
