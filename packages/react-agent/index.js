@@ -16,6 +16,7 @@ class Store extends Component {
 let store, socket = io.connect();
 const cache = {};
 const subscriptions = {};
+let logger = false;
 
 window.addEventListener('online', () => {
   socket = io.connect();
@@ -40,11 +41,16 @@ socket.on('subscriber', data => { subscriptions[data.key].func(data.response) })
 
 export const Agent = (props) => {
   store = new Store(props);
+  if (props.logger && props.logger === 'true') logger = true;
   return store;
 }
 
 export const query = (key, request) => {
   const queryId = uuidv4();
+  if (logger) {
+    if(!request) request = "none";
+    console.log('Query: ', key, '\nRequest: ', request, '\nID: ', queryId);
+  };
   socket.emit('query', { key, request, queryId });
   return new Promise((resolve, reject) => {
     cache[queryId] = { key, request, queryId, resolve, reject };
@@ -52,12 +58,17 @@ export const query = (key, request) => {
 };
 
 export const on = (key, func) => {
+  if (logger) console.log('On: ', key);
   socket.emit('subscribe', { key });
   subscriptions[key] = { func };
 };
 
 export const emit = (key, request) => {
   const queryId = uuidv4();
+  if (logger) {
+    if(!request) request = "none";
+    console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', queryId);
+  };
   socket.emit('emit', { key, request, queryId });
   return new Promise((resolve, reject) => {
     cache[queryId] = { key, request, queryId, resolve, reject };
@@ -65,6 +76,7 @@ export const emit = (key, request) => {
 };
 
 export const set = (...args) => {
+  if (logger) console.log('Set: ', ...args);
   for (let i = 0; i < args.length; i = i + 2) {
     if (i + 1 === args.length) store.addToStore(args[i], null);
     else store.addToStore(args[i], args[i + 1]);
@@ -72,6 +84,7 @@ export const set = (...args) => {
 };
 
 export const get = (...keys) => {
+  if (logger) console.log('Get: ', ...keys);
   if (keys.length > 1) {
     const results = {};
     keys.forEach(key => results[key] = store.state[key]);

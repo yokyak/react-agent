@@ -24,7 +24,7 @@ const initialStore = {
 };
 
 render(
-  <Agent store={initialStore}>
+  <Agent store={initialStore} logger="true">
     <App />
   </Agent>
   , document.querySelector('#root'));

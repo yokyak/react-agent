@@ -1,6 +1,6 @@
 require('babel-polyfill');
 
-module.exports = (server, database, queries) => {
+module.exports = (server, database, queries, logger = false) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const Sequelize = require('sequelize');
@@ -11,7 +11,8 @@ module.exports = (server, database, queries) => {
     dialect: database.dialect,
     host: database.host,
     port: database.port,
-    operatorsAliases: Op
+    operatorsAliases: Op,
+    logging: logger === true ? action => console.log(' ', action) : false,
   });
 
   const subscribedSockets = {};
@@ -38,7 +39,9 @@ module.exports = (server, database, queries) => {
 
     socket.on('query', data => {
       runQuery(data.key, data.request, data.queryId, result => {
+        console.log(chalk.bold('  Callback: '), 'success');
         socket.emit('response', result);
+        console.log(chalk.bold('  Completed: '), data.key, data.queryId);
       });
     });
 
@@ -57,16 +60,23 @@ module.exports = (server, database, queries) => {
   });
 
   const runQuery = (key, request, queryId, callback) => {
+    if (logger) {
+      if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(queryId), '\n', chalk.bold(' Object from client: '), request);
+      else console.log(chalk.bold.green('Key: '), chalk.bold.blue(queries[key]), chalk.bold.blue('\nID:'), chalk.blue(queryId));
+    }
     if (queries[key].pre) {
       for (let i = 0; i < queries[key].pre.length; i++) {
         const returned = queries[key].pre[i](request);
         if (returned === false) {
+          if (logger) console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
           return callback({ preError: 'React Agent: Not all server pre functions passed.', queryId });
         } else {
           request = returned;
         }
       }
     }
+
+    if (logger && queries[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
 
     if (typeof queries[key].query !== 'function') {
       const { string, replacements } = parseSQL(queries[key].query, request);
@@ -79,7 +89,7 @@ module.exports = (server, database, queries) => {
           }
         })
         .catch(error => {
-          console.log(chalk.red('Error with database: '), chalk.yellow(error));
+          console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
           if (queries[key].errorMessage) {
             callback({ databaseError: queries[key].errorMessage, queryId });
           } else {
@@ -90,7 +100,10 @@ module.exports = (server, database, queries) => {
       const promise = new Promise((resolve, reject) => {
         queries[key].query(resolve, reject, request);
       });
-      promise.then(response => callback({ key, response, queryId }));
+      promise.then(response => {
+        console.log(chalk.bold('  Query function: '), 'success');
+        callback({ key, response, queryId })
+      });
     }
   };
 
@@ -120,4 +133,4 @@ module.exports = (server, database, queries) => {
     }
     return { string, replacements };
   };
-};
+}

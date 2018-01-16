@@ -17,4 +17,4 @@ const database = {
   port: 5432
 };
 
-agent(server, database, queries);
+agent(server, database, queries, true);
