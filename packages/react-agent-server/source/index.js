@@ -1,19 +1,22 @@
 require('babel-polyfill');
 
-module.exports = (server, database, queries, logger = false) => {
+module.exports = (server, queries, database, logger = false) => {
   const socketio = require('socket.io');
   const io = socketio(server);
-  const Sequelize = require('sequelize');
   const chalk = require('chalk');
-  const { Op } = Sequelize;
+  let sequelize;
 
-  const sequelize = new Sequelize(database.name, database.user, database.password, {
-    dialect: database.dialect,
-    host: database.host,
-    port: database.port,
-    operatorsAliases: Op,
-    logging: logger === true ? action => console.log(' ', action) : false,
-  });
+  if (database) {
+    const Sequelize = require('sequelize');
+    const { Op } = Sequelize;
+    sequelize = new Sequelize(database.name, database.user, database.password, {
+      dialect: database.dialect,
+      host: database.host,
+      port: database.port,
+      operatorsAliases: Op,
+      logging: logger === true ? action => console.log(' ', action) : false
+    });
+  }
 
   const subscribedSockets = {};
 
