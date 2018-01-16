@@ -27,7 +27,8 @@ module.exports = {
       request => {
         if (request.cookie2 === '456') return request;
         else return false;
-      }
+      },
+      // request => false,
     ],
     query: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
