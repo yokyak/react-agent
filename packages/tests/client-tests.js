@@ -19,7 +19,7 @@ describe('React Agent Client', () => {
     </Agent>
     , dom.window.document.querySelector('#root'));
 
-  const store = getStore();
+  const store = getStoreComponent();
 
   describe('Agent Component', () => {
     it('should extend the React Component class', () => {

@@ -30,10 +30,16 @@ First `require` React Agent Server into your server-side script.
 const agent = require('react-agent-server');
 ```
 
-The `agent` function is called with a server, database and queries object.
+The `agent` function is called with a server, queries and database object.
 
 ```javascript
-const server = app.listen(3000);
+const server = http.createServer(fn).listen(3000);
+
+const queries = {
+  getMessages: {
+    query: 'SELECT * FROM posts'
+  }
+};
 
 const database = {
   name: 'billy',
@@ -44,17 +50,11 @@ const database = {
   port: 3421
 };
 
-const queries = {
-  getMessages: {
-    query: 'SELECT * FROM posts'
-  }
-};
-
-agent(server, database, queries);
+agent(server, queries, database);
 ```
-With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` key for `getMessages` will be ran.
+With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` key for `getMessages` will be ran ("SELECT * FROM posts").
 
-A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Calling `console.log` on the response would be the easiest way to see the SQL results.
+A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 
 ```javascript
 const queries = {
@@ -76,41 +76,41 @@ const queries = {
   }
 };
 ```
-In the react-agent client-side script, any call to `set` will by default also look for the same key on the server, much like `query`. However, calls to `set` also subscribe to a specific SQL query under the same key that can be triggered by other clients. This SQL query is the value for `response`.
 
-For example:
-
-```javascript
-const queries = {
-  messages: {
-    query: 'INSERT INTO posts VALUES (?, ?)',
-    response: 'SELECT * FROM posts',
-    callback: response => response[0]
-  }
-};
-```
-
-Upon calling `set('messages', message)` on the client-side, the client is now also subscribed to the `response` SQL query. If any other clients call `set('messages', message)` past that point, they are then pushed the response from that SQL query. This is what allows for real-time SQL updates to be pushed to clients. In this situation, the callback is actually performed on the response from `response`.
-
-A `pre` key can be used to run any number of functions before the SQL query is ran. If any of these functions return false, a `validationError` will be attached as a property to the object passed into the client's `query` callback and the SQL query will not run. If all functions return true, everything will run as normal.
+A `pre` property can be used to run any number of functions before the SQL query is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the SQL query. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `query` method returns will be rejected and the SQL query will not run. 
 
 ```javascript
 login: {
-    pre: [request => request.val1, request => request.val2],
-    query: 'SELECT username, _id FROM users WHERE username = ? AND password = ?',
+    pre: [
+      request => {
+        if (request.cookie1 === '123') return request;
+        else return false;
+      },
+      request => {
+        if (request.cookie2 === '456') return request;
+        else return false;
+      }
+    ],
+    query: 'SELECT username, _id FROM users WHERE username = $user AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id })
   }
 ```
 
-The `request` object passed into each function is from the last parameter of the client-side `query` call.
+In the query above, two properties from our request object from the client will be injected into the SQL string by using `$` plus the property name. For example, if the client-side `query` call looked like this:
 
-Arbitrary functions can also be ran without needing a SQL query. If all that's defined on a key is a callback, that callback will be passed a `resolve` and `reject` function (from a `new Promise` within the library) along with any values passed in from the client-side `query` call. The use of Promises makes dealing with asynchronous code in the callback easy.
+```javascript
+query('login', { user: 'Bob', password: 'superstrongpassword' })
+```
+
+Then the appropriate values with those property names will be injected into the SQL string. React Agent uses Sequelize under the hood, which handles input sanitization protecting against many different SQL injection methods. 
+
+Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed a `resolve` and `reject` argument (from a `new Promise` within the library) along with the request object passed in from the client-side `query` call. The use of a Promise makes dealing with asynchronous code in the query easy.
 
 ```javascript
 const queries = {
   getPlanet: {
-    callback: (resolve, reject, values) => {
-      const url = values[0];
+    query: (resolve, reject, request) => {
+      const url = request.url;
       request(url, (error, response, body) => {
         if (error) reject(error);
         else resolve(body);
