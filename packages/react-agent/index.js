@@ -10,7 +10,7 @@ class Store extends Component {
 
   addToStore(key, value) { this.setState({ [key]: value }) }
 
-  render() { return cloneElement(this.props.children, this.state) }
+  render() { return cloneElement(this.props.children) }
 }
 
 let store, socket = io.connect();
