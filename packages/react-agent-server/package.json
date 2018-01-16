@@ -2,7 +2,7 @@
   "name": "react-agent-server",
   "version": "1.0.0",
   "description": "",
-  "main": "./distribution/index.js",
+  "main": "./source/index.js",
   "scripts": {
     "build": "babel source --out-dir distribution",
     "prepublish": "npm run build"
