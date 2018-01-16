@@ -20,11 +20,22 @@ module.exports = (server, database, queries, logger = false) => {
   io.on('connection', socket => {
 
     socket.on('subscribe', ({ key }) => {
-      if(subscribedSockets[key]) {
+      if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
           subscribedSockets[key].push(socket);
         }
       } else subscribedSockets[key] = [socket];
+    });
+
+    socket.on('unsubscribe', ({ key }) => {
+      if (subscribedSockets[key] && subscribedSockets[key].includes(socket)) {
+        const i = subscribedSockets[key].indexOf(socket);
+        if (i > -1) {
+          const arr = subscribedSockets[key].slice();
+          arr.splice(i, 1);
+          subscribedSockets[key] = arr;
+        }
+      }
     });
 
     socket.on('emit', data => {
