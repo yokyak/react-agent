@@ -32,7 +32,7 @@ class Chat extends Component {
     on('getMessages', data => set('messages', data.messages));
     const { first, second, third } = get('first', 'second', 'third');
     console.log(first, second, third);
-    console.log(get('store'));
+    console.log(get());
   }
 
   handleSend() {
