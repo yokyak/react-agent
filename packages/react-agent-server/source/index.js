@@ -61,7 +61,7 @@ module.exports = (server, database, queries, logger = false) => {
 
   const runQuery = (key, request, queryId, callback) => {
     if (logger) {
-      if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(queryId), '\n', chalk.bold(' Object from client: '), request);
+      if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(queryId), '\n', chalk.bold(' From client: '), request);
       else console.log(chalk.bold.green('Key: '), chalk.bold.blue(queries[key]), chalk.bold.blue('\nID:'), chalk.blue(queryId));
     }
     if (queries[key].pre) {
