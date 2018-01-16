@@ -57,8 +57,8 @@ export const query = (key, request) => {
   });
 };
 
-export const subscribe = (key, func) => {
-  if (logger) console.log('Subscribed: ', key);
+export const on = (key, func) => {
+  if (logger) console.log('On: ', key);
   socket.emit('subscribe', { key });
   subscriptions[key] = { func };
 };

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, query, subscribe, emit } from '../../../react-agent';
+import { get, set, query, on, emit } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -29,7 +29,7 @@ class Chat extends Component {
         this.getPlanets();
       })
       .catch(error => { alert(error) });
-    subscribe('getMessages', data => set('messages', data.messages));
+    on('getMessages', data => set('messages', data.messages));
     const { first, second, third } = get('first', 'second', 'third');
     console.log(first, second, third);
     console.log(get('store'));
