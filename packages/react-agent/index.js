@@ -10,7 +10,7 @@ class Store extends Component {
 
   addToStore(key, value) { this.setState({ [key]: value }) }
 
-  render() { return cloneElement(this.props.children, this.state) }
+  render() { return cloneElement(this.props.children) }
 }
 
 let store, socket = io.connect();
@@ -91,17 +91,13 @@ export const set = (...args) => {
 
 export const get = (...keys) => {
   if (logger) console.log('Get: ', ...keys);
-  if (keys.length > 1) {
+  if (keys.length === 0) return store.state;
+  else if (keys.length > 1) {
     const results = {};
     keys.forEach(key => results[key] = store.state[key]);
     return results;
-  } else {
-    if (keys[0] === 'store') {
-      return store.state;
-    } else {
-      return store.state[keys[0]];
-    }
-  }
+  } else return store.state[keys[0]];
 };
 
-export const getStore = () => store;
+export const getStore = () => store.state;
+export const getStoreComponent = () => store;
