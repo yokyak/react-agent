@@ -1,19 +1,12 @@
 const path = require('path');
 const agent = require('./../react-agent-server');
-const queries = require('./queries');
-const http = require('http');
-const fs = require('fs');
+const actions = require('./actions');
+const express = require('express');
+const app = express();
 
-const server = http.createServer((req, res) => {
-  let contentType = 'text/html', filePath = req.url;
-  if (filePath === '/') filePath = '/index.html';
-  else contentType = 'text/javascript';
-  fs.readFile('./build' + filePath, (err, data) => {
-    res.writeHead(200, { 'Content-Type': contentType });
-    res.write(data);
-    res.end();
-  });
-}).listen(3000);
+app.use(express.static(path.resolve(__dirname, 'build')));
+
+const server = app.listen(3000);
 
 const database = {
   name: 'qxqigbwr',
@@ -24,4 +17,4 @@ const database = {
   port: 5432
 };
 
-agent(server, queries, database, true);
+agent(server, actions, database, true);

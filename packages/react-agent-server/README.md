@@ -35,9 +35,9 @@ The `agent` method is called with a server, queries and database object.
 ```javascript
 const server = http.createServer(fn).listen(3000);
 
-const queries = {
+const actions = {
   getMessages: {
-    query: 'SELECT * FROM posts'
+    action: 'SELECT * FROM posts'
   }
 };
 
@@ -50,16 +50,17 @@ const database = {
   port: 3421
 };
 
-agent(server, queries, database);
+agent(server, actions, database);
 ```
-With this setup, whenever `query('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `query` property for `getMessages` will be ran ("SELECT * FROM posts").
+With this setup, whenever `run('getMessages')` is called from the client-side (via react-agent), the corresponding SQL query under the `action` property for `getMessages` will be ran ("SELECT * FROM posts").
 
+<!-- fuck andrew -->
 A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 
 ```javascript
-const queries = {
+const actions = {
   getMessages: {
-    query: 'SELECT * FROM posts',
+    action: 'SELECT * FROM posts',
     callback: response => ({ messages: response[0] })
   }
 };
@@ -68,16 +69,16 @@ const queries = {
 In the event of a database error, a custom error message can be sent back to the client. The default error message is 'Error with database'.
 
 ```javascript
-const queries = {
+const actions = {
   getMessages: {
-    query: 'SELECT * FROM posts',
+    action: 'SELECT * FROM posts',
     callback: response => ({ messages: response[0] }),
     errorMessage: 'Problem retrieving messages.'
   }
 };
 ```
 
-A `pre` property can be used to run any number of functions before the SQL query is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the SQL query. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `query` method returns will be rejected and the SQL query will not run. 
+A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `run` method returns will be rejected and the action will not run. 
 
 ```javascript
 login: {
@@ -91,25 +92,25 @@ login: {
         else return false;
       }
     ],
-    query: 'SELECT username, _id FROM users WHERE username = $user AND password = $password',
+    action: 'SELECT username, _id FROM users WHERE username = $user AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id })
   }
 ```
 
-In the query above, two properties from our request object from the client will be injected into the SQL string by using `$` plus the property name. For example, if the client-side `query` call looked like this:
+In the action above, two properties from our request object from the client will be injected into the SQL string by using `$` then the property name. For example, if the client-side `run` call looked like this:
 
 ```javascript
-query('login', { user: 'Bob', password: 'superstrongpassword' })
+run('login', { user: 'Bob', password: 'superstrongpassword' })
 ```
 
-Then the appropriate values with those property names will be injected into the SQL string. React Agent uses Sequelize under the hood, which handles input sanitization protecting against many different SQL injection methods. 
+Then the appropriate values with those property names will be injected into the SQL string. React Agent uses Sequelize under the hood, which handles input sanitization protecting against many different types of SQL injection attacks. 
 
-Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed a `resolve` and `reject` argument (from a `new Promise` within the library) along with the request object passed in from the client-side `query` call. The use of a Promise makes dealing with asynchronous code in the query easy.
+Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed a `resolve` and `reject` argument (from a `new Promise` within the library) along with the request object passed in from the client-side `run` call. The use of a Promise makes dealing with asynchronous code in the action easy.
 
 ```javascript
-const queries = {
+const actions = {
   getPlanet: {
-    query: (resolve, reject, request) => {
+    action: (resolve, reject, request) => {
       const url = request.url;
       fetch(url, (error, response, body) => {
         if (error) reject(error);

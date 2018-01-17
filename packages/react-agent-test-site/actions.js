@@ -1,11 +1,11 @@
-const req = require('request');
+const fetch = require('request');
 
 module.exports = {
   postMessage: {
-    query: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $id)'
+    action: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $id)'
   },
   getMessages: {
-    query: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
+    action: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
     callback: response => {
       response[0].sort((a, b) => {
         return new Date(a.date) - new Date(b.date);
@@ -14,7 +14,7 @@ module.exports = {
     }
   },
   register: {
-    query: 'INSERT INTO users (username, password) VALUES ($username, $password); SELECT username, _id FROM users WHERE username = $username AND password = $password',
+    action: 'INSERT INTO users (username, password) VALUES ($username, $password); SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'yikes'
   },
@@ -30,13 +30,13 @@ module.exports = {
       },
       // request => false,
     ],
-    query: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
+    action: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no'
   },
   getPlanet: {
-    query: (resolve, reject, request) => {
-      req(request.url, (error, response, body) => {
+    action: (resolve, reject, request) => {
+      fetch(request.url, (error, response, body) => {
         if (error) reject(error);
         else resolve(body);
       });

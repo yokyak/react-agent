@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, query, on, emit } from '../../../react-agent';
+import { get, set, run, on, emit } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -16,13 +16,13 @@ class Chat extends Component {
   scrollToBottom() { this.messagesEnd.scrollIntoView({ behavior: 'instant' }) }
 
   getPlanets() {
-    query('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
+    run('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
       .then(data => { console.log(data) })
       .catch(error => { alert(error) });
   }
 
   componentDidMount() {
-    query('getMessages')
+    run('getMessages')
       .then(data => {
         set('messages', data.messages);
         this.scrollToBottom();
@@ -40,7 +40,7 @@ class Chat extends Component {
       const newMessage = { chatmessage: this.state.text, date: Date.now(), username: get('username') };
       const oldMessages = get('messages');
       set('messages', [...oldMessages, newMessage]);
-      query('postMessage', { message: this.state.text, id: get('id') })
+      run('postMessage', { message: this.state.text, id: get('id') })
         .then(data => { emit('getMessages') })
         .catch(error => { set('messages', oldMessages) });
       this.setState({ text: '' });

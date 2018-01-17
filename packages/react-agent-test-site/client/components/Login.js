@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, query } from '../../../react-agent';
+import { get, set, run } from '../../../react-agent';
 
 class Login extends Component {
   constructor(props) {
@@ -15,13 +15,13 @@ class Login extends Component {
   handlePassword(event) { this.setState({ password: event.target.value }) }
 
   handleLogin() {
-    query('login', { username: this.state.user, password: this.state.password, cookie1: '123', cookie2: '456' })
+    run('login', { username: this.state.user, password: this.state.password, cookie1: '123', cookie2: '456' })
       .then(data => { set('username', data.username, 'id', data.id) })
       .catch(error => { alert(error) });
   }
 
   handleRegister() {
-    query('register', { username: this.state.user, password: this.state.password })
+    run('register', { username: this.state.user, password: this.state.password })
       .then(data => { set('username', data.username, 'id', data.id) })
       .catch(error => { alert(error) });
   }
