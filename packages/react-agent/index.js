@@ -28,16 +28,16 @@ export const Agent = (props) => {
   return store;
 }
 
-export const query = (key, request) => {
+export const run = (key, request) => {
   if (!server) setupSocket();
-  const queryId = uuidv4();
+  const actionId = uuidv4();
   if (logger) {
     if(!request) request = "none";
-    console.log('Query: ', key, '\nRequest: ', request, '\nID: ', queryId);
+    console.log('Run: ', key, '\nRequest: ', request, '\nID: ', actionId);
   };
-  socket.emit('query', { key, request, queryId });
+  socket.emit('run', { key, request, actionId });
   return new Promise((resolve, reject) => {
-    cache[queryId] = { key, request, queryId, resolve, reject };
+    cache[actionId] = { key, request, actionId, resolve, reject };
   });
 };
 
@@ -57,14 +57,14 @@ export const unsubscribe = (key) => {
 
 export const emit = (key, request) => {
   if (!server) setupSocket();
-  const queryId = uuidv4();
+  const actionId = uuidv4();
   if (logger) {
     if(!request) request = "none";
-    console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', queryId);
+    console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', actionId);
   };
-  socket.emit('emit', { key, request, queryId });
+  socket.emit('emit', { key, request, actionId });
   return new Promise((resolve, reject) => {
-    cache[queryId] = { key, request, queryId, resolve, reject };
+    cache[actionId] = { key, request, actionId, resolve, reject };
   });
 };
 
@@ -94,16 +94,16 @@ const setupSocket = () => {
   server = true;
   socket = io.connect();
   socket.on('connect', () => {
-    Object.values(cache).forEach(({ key, request, queryId }) => {
-      socket.emit('query', { key, request, queryId });
+    Object.values(cache).forEach(({ key, request, actionId }) => {
+      socket.emit('query', { key, request, actionId });
     });
   });
   socket.on('response', data => {
-    if (cache[data.queryId]) {
-      if (data.preError) cache[data.queryId].reject(data.preError);
-      else if (data.databaseError) cache[data.queryId].reject(data.databaseError);
-      else cache[data.queryId].resolve(data.response);
-      delete cache[data.queryId];
+    if (cache[data.actionId]) {
+      if (data.preError) cache[data.actionId].reject(data.preError);
+      else if (data.databaseError) cache[data.actionId].reject(data.databaseError);
+      else cache[data.actionId].resolve(data.response);
+      delete cache[data.actionId];
     }
   });
   socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
