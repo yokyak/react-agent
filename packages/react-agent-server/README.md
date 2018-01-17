@@ -68,7 +68,8 @@ agent(server, actions, database);
 ```
 With this setup, whenever `run('getMessages')` is called from the client-side (via React Agent), the corresponding SQL query under the `action` property for `getMessages` will be ran ("SELECT * FROM posts").
 
-<!-- fuck andrew -->
+Optionally, add `true` as the fourth argument of `agent` to log in the console what's happening under the hood. This feature can be helpful for debugging.
+
 A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 
 ```javascript
