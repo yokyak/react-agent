@@ -4,7 +4,7 @@ const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 import React, { Component } from '../react-agent/node_modules/react';
 import { render } from 'react-dom';
-import { Agent, get, set, getStore } from '../react-agent';
+import { Agent, get, set, getStoreComponent } from '../react-agent';
 
 describe('React Agent Client', () => {
 
