@@ -1,20 +1,76 @@
 import React, { Component, cloneElement } from 'react';
 import io from 'socket.io-client';
+import { dispatch, createStore, combineReducers } from 'redux';
+import { Provider, connect } from 'react-redux';
+import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
-class Store extends Component {
-  constructor(props) {
-    super(props);
-    this.state = props.store;
+const cache = {}, subscriptions = {};
+let MainStore, socket, server = false, logger = false;
+
+const addToReduxStore = (object) => {
+  return {
+    type: Object.keys(object)[0],
+    payload: object
   }
-
-  addToStore(key, value) { this.setState({ [key]: value }) }
-
-  render() { return cloneElement(this.props.children) }
 }
 
-const cache = {}, subscriptions = {};
-let store, socket, server = false, logger = false;
+const mapStateToProps = store => ({
+  reduxStore: store.reduxStore
+});
+
+const mapDispatchToProps = dispatch => ({
+  addToReduxStore: object => dispatch(addToReduxStore(object))
+});
+
+const storeReducer = (state = {}, action) => {
+  return Object.assign({}, state, action.payload);
+}
+
+const reducers = combineReducers({
+  reduxStore: storeReducer
+});
+
+const providerStore = createStore(
+  reducers,
+  composeWithDevTools()
+);
+
+class AgentStore extends Component {
+  componentWillMount() {
+    this.props.props.addToReduxStore(this.props.props.props.store);
+  }
+
+  addToStore(key, value) { this.props.props.addToReduxStore({ [key]: value }) }
+
+  render() {
+    return cloneElement(this.props.props.props.children);
+  }
+}
+
+class ReduxWrapper extends Component {
+
+  renderStore() {
+    MainStore = <AgentStore props={this.props} />;
+    return MainStore;
+  }
+
+  render() { 
+    return this.renderStore();
+  }
+}
+
+const RW = connect(mapStateToProps, mapDispatchToProps)(ReduxWrapper);
+
+class ProviderWrapper extends Component {
+  render() {
+    return (
+      <Provider store={providerStore} >
+        <RW props={this.props} />
+      </Provider>
+    );
+  }
+}
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
@@ -23,9 +79,8 @@ if (typeof window !== 'undefined') {
 }
 
 export const Agent = (props) => {
-  store = new Store(props);
   if (props.logger && props.logger === 'true') logger = true;
-  return store;
+  return new ProviderWrapper(props);
 }
 
 export const run = (key, request) => {
@@ -71,24 +126,24 @@ export const emit = (key, request) => {
 export const set = (...args) => {
   if (logger) console.log('Set: ', ...args);
   for (let i = 0; i < args.length; i = i + 2) {
-    if (i + 1 === args.length) store.addToStore(args[i], null);
-    else store.addToStore(args[i], args[i + 1]);
+    if (i + 1 === args.length) MainStore.props.props.addToReduxStore({ [args[i]]: null });
+    else MainStore.props.props.addToReduxStore({ [args[i]]: args[i + 1] });
   }
 };
 
 export const get = (...keys) => {
   if (logger) console.log('Get: ', ...keys);
-  if (keys.length === 0) return store.state;
+  if (keys.length === 0) return MainStore.props.props.reduxStore;
   else if (keys.length > 1) {
     const results = {};
-    keys.forEach(key => results[key] = store.state[key]);
+    keys.forEach(key => results[key] = MainStore.props.props.reduxStore[key]);
     return results;
-  } else return store.state[keys[0]];
+  } else return MainStore.props.props.reduxStore[keys[0]];
 };
 
-export const getStore = () => store.state;
+export const getStore = () => MainStore.props.props.reduxStore;
 
-export const getStoreComponent = () => store;
+export const getStoreComponent = () => MainStore;
 
 const setupSocket = () => {
   server = true;
