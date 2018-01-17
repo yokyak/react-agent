@@ -13,31 +13,12 @@ class Store extends Component {
   render() { return cloneElement(this.props.children) }
 }
 
-let store, socket = io.connect();
-const cache = {};
-const subscriptions = {};
-let logger = false;
+const cache = {}, subscriptions = {};
+let store, socket, server = false, logger = false;
 
 window.addEventListener('online', () => {
-  socket = io.connect();
+  if (server) socket = io.connect();
 });
-
-socket.on('connect', () => {
-  Object.values(cache).forEach(({ key, request, queryId }) => {
-    socket.emit('query', { key, request, queryId });
-  });
-});
-
-socket.on('response', data => {
-  if (cache[data.queryId]) {
-    if (data.preError) cache[data.queryId].reject(data.preError);
-    else if (data.databaseError) cache[data.queryId].reject(data.databaseError);
-    else cache[data.queryId].resolve(data.response);
-    delete cache[data.queryId];
-  }
-});
-
-socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
 
 export const Agent = (props) => {
   store = new Store(props);
@@ -46,6 +27,11 @@ export const Agent = (props) => {
 }
 
 export const query = (key, request) => {
+  if (!server) {
+    server = true;
+    socket = io.connect();
+    setupSocket();
+  }
   const queryId = uuidv4();
   if (logger) {
     if(!request) request = "none";
@@ -58,18 +44,33 @@ export const query = (key, request) => {
 };
 
 export const on = (key, func) => {
+  if (!server) {
+    server = true;
+    socket = io.connect();
+    setupSocket();
+  }
   if (logger) console.log('On: ', key);
   socket.emit('subscribe', { key });
   subscriptions[key] = { func };
 };
 
 export const unsubscribe = (key) => {
+  if (!server) {
+    server = true;
+    socket = io.connect();
+    setupSocket();
+  }
   if (logger) console.log('Unsubscribe: ', key);
   socket.emit('unsubscribe', { key });
   delete subscriptions[key];
 };
 
 export const emit = (key, request) => {
+  if (!server) {
+    server = true;
+    socket = io.connect();
+    setupSocket();
+  }
   const queryId = uuidv4();
   if (logger) {
     if(!request) request = "none";
@@ -100,4 +101,24 @@ export const get = (...keys) => {
 };
 
 export const getStore = () => store.state;
+
 export const getStoreComponent = () => store;
+
+const setupSocket = () => {
+  socket.on('connect', () => {
+    Object.values(cache).forEach(({ key, request, queryId }) => {
+      socket.emit('query', { key, request, queryId });
+    });
+  });
+
+  socket.on('response', data => {
+    if (cache[data.queryId]) {
+      if (data.preError) cache[data.queryId].reject(data.preError);
+      else if (data.databaseError) cache[data.queryId].reject(data.databaseError);
+      else cache[data.queryId].resolve(data.response);
+      delete cache[data.queryId];
+    }
+  });
+
+  socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
+}
