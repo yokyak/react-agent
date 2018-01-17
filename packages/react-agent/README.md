@@ -85,7 +85,7 @@ set('username', 'Billy')
 set('id', {id: 25141981})
 ```
 
-Multiple property/values pairs can be `set` by including them in consecutive order. Below we store the equivalent of `{color : 'blue'}` and `{active : true}`.
+Multiple property/values pairs can be `set` by including them in consecutive order. Below, we store the equivalent of `{color : 'blue'}` and `{active : true}`.
 
 ```javascript
 set('age', 28, 'active', true)
@@ -175,7 +175,9 @@ on('getAllStudents', data => {
 currentUsers = get('allStudents')
 set('allStudents', [...currentStudents, {name: Billy}])
 
-// Run the action 'addStudent' to update the server's database. If successful, emit an action to all subscribers of 'getAllStudents.' If error, revert the client's state to former value before optimistic update.
+// Run the action 'addStudent' to update the server's database.
+// If successful, emit an action to all subscribers of 'getAllStudents.'
+// If error, revert the client's state to former value before optimistic update.
 run('addStudent', {name: Billy})
   .then(() => {
     emit('getAllStudents')
@@ -188,3 +190,18 @@ run('addStudent', {name: Billy})
 
 
 
+## Contributors
+
+### Authors
+
+* **Tom Rosenblatt** - [https://github.com/tskittles](https://github.com/tskittles)
+
+* **Eric Choi** - [https://github.com/eric2turbo](https://github.com/eric2turbo)
+
+* **Henry Au** - [https://github.com/hhau01](https://github.com/hhau01)
+
+* **Andrew Harris** - [https://github.com/didrio](https://github.com/didrio)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](./../../LICENSE.txt) file for details.
