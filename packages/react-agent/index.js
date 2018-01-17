@@ -16,9 +16,11 @@ class Store extends Component {
 const cache = {}, subscriptions = {};
 let store, socket, server = false, logger = false;
 
-window.addEventListener('online', () => {
-  if (server) socket = io.connect();
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    if (server) socket = io.connect();
+  });
+}
 
 export const Agent = (props) => {
   store = new Store(props);
