@@ -75,6 +75,17 @@ module.exports = (server, queries, database, logger = false) => {
       } else subscribedSockets[key] = [socket];
     });
 
+    socket.on('unsubscribe', ({ key }) => {
+      if (subscribedSockets[key] && subscribedSockets[key].includes(socket)) {
+        const i = subscribedSockets[key].indexOf(socket);
+        if (i > -1) {
+          const arr = subscribedSockets[key].slice();
+          arr.splice(i, 1);
+          subscribedSockets[key] = arr;
+        }
+      }
+    });
+
     socket.on('emit', (data) => {
       if (subscribedSockets[data.key]) {
         runQuery(data.key, data.request, data.queryId, (result) => {

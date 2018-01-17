@@ -63,6 +63,12 @@ export const on = (key, func) => {
   subscriptions[key] = { func };
 };
 
+export const unsubscribe = (key) => {
+  if (logger) console.log('Unsubscribe: ', key);
+  socket.emit('unsubscribe', { key });
+  delete subscriptions[key];
+};
+
 export const emit = (key, request) => {
   const queryId = uuidv4();
   if (logger) {
