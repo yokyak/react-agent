@@ -1,6 +1,6 @@
 const path = require('path');
 const agent = require('./../react-agent-server');
-const queries = require('./queries');
+const actions = require('./actions');
 const http = require('http');
 const fs = require('fs');
 
@@ -24,4 +24,4 @@ const database = {
   port: 5432
 };
 
-agent(server, queries, database, true);
+agent(server, actions, database, true);
