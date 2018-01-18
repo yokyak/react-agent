@@ -195,6 +195,9 @@ const setupSocket = () => {
   socket.on('response', data => {
     let actionId = data.actionId;
     let response = data.response;
+    
+    // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
+    // each response in the returned object will have the same the action id
     if (!data.hasOwnProperty('actionId')) {
       const keys = Object.keys(data);
       actionId = data[keys[0]].actionId;
