@@ -19,16 +19,6 @@ class Chat extends Component {
       .catch(error => { alert(error) });
     on('getMessages', data => set('messages', data.messages));
     const { first, second, third } = get('first', 'second', 'third');
-    console.log(first, second, third);
-    console.log(get());
-
-    window.addEventListener('beforeunload', (ev) => {
-      if (isOfflineCacheEmpty() === false) {
-        const message = '';
-        ev.returnValue = message;
-        return message;
-      }
-    });
   }
 
   componentDidUpdate() { this.scrollToBottom() }
@@ -41,16 +31,6 @@ class Chat extends Component {
     run('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
       .then(data => { console.log(data) })
       .catch(error => { alert(error) });
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('beforeunload', (ev) => {
-      if (isOfflineCacheEmpty() === false) {
-        const message = '';
-        ev.returnValue = message;
-        return message;
-      }
-    });
   }
 
   handleSend() {
@@ -80,7 +60,6 @@ class Chat extends Component {
   }
 
   render() {
-    console.log(get());
     const messages = get('messages');
     return (
       <div id='chat'>
