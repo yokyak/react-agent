@@ -13,6 +13,14 @@ module.exports = {
       return { messages: response[0] };
     }
   },
+  getUsers: {
+    action: 'SELECT username FROM users',
+    callback: response => response[0]
+  },
+  getIds: {
+    action: 'SELECT _id FROM users',
+    callback: response => response[0]
+  },
   register: {
     action: 'INSERT INTO users (username, password) VALUES ($username, $password); SELECT username, _id FROM users WHERE username = $username AND password = $password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
