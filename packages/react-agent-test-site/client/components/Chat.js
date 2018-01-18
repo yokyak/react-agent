@@ -80,6 +80,7 @@ class Chat extends Component {
   }
 
   render() {
+    console.log(get());
     const messages = get('messages');
     return (
       <div id='chat'>

@@ -6,9 +6,9 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
-let MainStore, socket, server = false, logger = false;
+let MainStore, socket, server = false, logger = false, providerStore, initialStore = false;
 
-const addToReduxStore = (object) => {
+const actionCreator = (object) => {
   return {
     type: Object.keys(object)[0],
     payload: object
@@ -20,7 +20,7 @@ const mapStateToProps = store => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addToReduxStore: object => dispatch(addToReduxStore(object))
+  addToReduxStore: object => dispatch(actionCreator(object))
 });
 
 const storeReducer = (state = {}, action) => {
@@ -31,20 +31,14 @@ const reducers = combineReducers({
   reduxStore: storeReducer
 });
 
-const providerStore = createStore(
-  reducers,
-  composeWithDevTools()
-);
-
 class AgentStore extends Component {
   componentWillMount() {
-    this.props.props.addToReduxStore(this.props.props.props.store);
+    if (initialStore) this.props.props.addToReduxStore(this.props.props.props.store);
   }
-
-  addToStore(key, value) { this.props.props.addToReduxStore({ [key]: value }) }
-
   render() {
-    return cloneElement(this.props.props.props.children);
+    if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
+      return <div></div>;
+    } else return this.props.props.props.children;
   }
 }
 
@@ -79,7 +73,13 @@ if (typeof window !== 'undefined') {
 }
 
 export const Agent = (props) => {
-  if (props.logger && props.logger === 'true') logger = true;
+  if (props.hasOwnProperty('store')) initialStore = true;
+  if (props.logger && props.logger === true) logger = true;
+  if (props.devTools && props.devTools === true) {
+    providerStore = createStore(reducers, composeWithDevTools());
+  } else {
+    providerStore = createStore(reducers);
+  }
   return new ProviderWrapper(props);
 }
 
@@ -124,10 +124,15 @@ export const emit = (key, request) => {
 };
 
 export const set = (...args) => {
-  if (logger) console.log('Set: ', ...args);
-  for (let i = 0; i < args.length; i = i + 2) {
-    if (i + 1 === args.length) MainStore.props.props.addToReduxStore({ [args[i]]: null });
-    else MainStore.props.props.addToReduxStore({ [args[i]]: args[i + 1] });
+  if (args.length === 1 && typeof args[0] === 'object') {
+    if (logger) console.log('Set: ', args[0]);
+    MainStore.props.props.addToReduxStore(args[0]);
+  } else {
+    if (logger) console.log('Set: ', ...args);
+    for (let i = 0; i < args.length; i = i + 2) {
+      if (i + 1 === args.length) MainStore.props.props.addToReduxStore({ [args[i]]: null });
+      else MainStore.props.props.addToReduxStore({ [args[i]]: args[i + 1] });
+    }
   }
 };
 
