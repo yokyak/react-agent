@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, run, on, emit } from '../../../react-agent';
+import { get, set, run, on, emit, isOfflineCacheEmpty } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -7,6 +7,28 @@ class Chat extends Component {
     this.state = {
       text: ''
     };
+  }
+
+  componentDidMount() {
+    run('getMessages')
+      .then(data => {
+        set('messages', data.messages);
+        this.scrollToBottom();
+        this.getPlanets();
+      })
+      .catch(error => { alert(error) });
+    on('getMessages', data => set('messages', data.messages));
+    const { first, second, third } = get('first', 'second', 'third');
+    console.log(first, second, third);
+    console.log(get());
+
+    window.addEventListener('beforeunload', (ev) => {
+      if (isOfflineCacheEmpty() === false) {
+        const message = '';
+        ev.returnValue = message;
+        return message;
+      }
+    });
   }
 
   componentDidUpdate() { this.scrollToBottom() }
@@ -21,17 +43,14 @@ class Chat extends Component {
       .catch(error => { alert(error) });
   }
 
-  componentDidMount() {
-    run('getMessages')
-      .then(data => {
-        set('messages', data.messages);
-        this.scrollToBottom();
-        this.getPlanets();
-      })
-      .catch(error => { alert(error) });
-    on('getMessages', data => set('messages', data.messages));
-    const { first, second, third } = get('first', 'second', 'third');
-    console.log(first, second, third);
+  componentWillUnmount() {
+    window.removeEventListener('beforeunload', (ev) => {
+      if (isOfflineCacheEmpty() === false) {
+        const message = '';
+        ev.returnValue = message;
+        return message;
+      }
+    });
   }
 
   handleSend() {

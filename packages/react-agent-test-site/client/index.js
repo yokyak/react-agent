@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import { render } from 'react-dom';
 import Chat from './components/Chat';
 import Login from './components/Login';
@@ -8,8 +8,8 @@ import './style.css';
 class App extends Component {
 
   render() {
-    return(
-      <div id='app'>
+    return (
+      <div id="app">
         <Login />
         <Chat />
       </div>
@@ -20,11 +20,12 @@ class App extends Component {
 const initialStore = {
   first: true,
   second: false,
-  third: 'ok'
+  third: 'ok',
 };
 
 render(
   <Agent store={initialStore} logger={false} devTools={true}>
     <App />
   </Agent>
-  , document.querySelector('#root'));
+  , document.querySelector('#root')
+);

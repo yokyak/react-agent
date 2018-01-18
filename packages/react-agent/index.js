@@ -49,7 +49,9 @@ class ReduxWrapper extends Component {
     return MainStore;
   }
 
-  render() { return this.renderStore() }
+  render() {
+    return this.renderStore();
+  }
 }
 
 const RW = connect(mapStateToProps, mapDispatchToProps)(ReduxWrapper);
@@ -88,9 +90,9 @@ export const run = (key, request) => {
     if(!request) request = "none";
     console.log('Run: ', key, '\nRequest: ', request, '\nID: ', actionId);
   };
-  socket.emit('run', { key, request, actionId });
+  socket.emit('run', { key, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { key, request, actionId, resolve, reject };
+    cache[actionId] = { key, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -115,9 +117,9 @@ export const emit = (key, request) => {
     if(!request) request = "none";
     console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', actionId);
   };
-  socket.emit('emit', { key, request, actionId });
+  socket.emit('emit', { key, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { key, request, actionId, resolve, reject };
+    cache[actionId] = { key, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -144,6 +146,8 @@ export const get = (...keys) => {
   } else return MainStore.props.props.reduxStore[keys[0]];
 };
 
+export const isOfflineCacheEmpty = () => Object.keys(cache).length === 0;
+
 export const getStore = () => MainStore.props.props.reduxStore;
 
 export const getStoreComponent = () => MainStore;
@@ -151,9 +155,10 @@ export const getStoreComponent = () => MainStore;
 const setupSocket = () => {
   server = true;
   socket = io.connect();
+
   socket.on('connect', () => {
-    Object.values(cache).forEach(({ key, request, actionId }) => {
-      socket.emit('query', { key, request, actionId });
+    Object.values(cache).forEach(({ key, request, actionId, socketID }) => {
+      socket.emit('query', { key, request, actionId, socketID });
     });
   });
   socket.on('response', data => {
