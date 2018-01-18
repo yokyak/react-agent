@@ -8,10 +8,18 @@ const uuidv4 = require('uuid/v4');
 const cache = {}, subscriptions = {};
 let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false;
 
-const actionCreator = (object) => {
+const addToReduxStore = (object) => {
   return {
     type: Object.keys(object)[0],
     payload: object
+  }
+}
+
+const deleteFromReduxStore = (key) => {
+  // console.log('KEY', key);
+  return {
+    type: 'DESTROY: ' + key,
+    payload: key
   }
 }
 
@@ -20,11 +28,21 @@ const mapStateToProps = store => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addToReduxStore: object => dispatch(actionCreator(object))
+  addToReduxStore: object => dispatch(addToReduxStore(object)),
+  deleteFromReduxStore: object => dispatch(deleteFromReduxStore(object))
 });
 
+let newState;
+
 const storeReducer = (state = {}, action) => {
-  return Object.assign({}, state, action.payload);
+  switch (action.type.slice(0, 7)) {
+    case 'DESTROY':
+      newState = Object.assign({}, state);
+      delete newState[action.payload];
+      return newState;
+    default:
+      return Object.assign({}, state, action.payload);
+  }
 }
 
 const reducers = combineReducers({
@@ -61,16 +79,17 @@ class AgentStore extends Component {
   }
 
   render() {
-    if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
-      return <div></div>;
-    } else return this.props.props.props.children;
+    // if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
+    //   return <div></div>;
+    // } else
+    return this.props.props.props.children;
   }
 }
 
 class ReduxWrapper extends Component {
 
   renderStore() {
-    MainStore = <AgentStore props={this.props} />;
+    MainStore = <AgentStore props={this.props} />; // its cool that you can call props on MainStore
     return MainStore;
   }
 
@@ -172,6 +191,11 @@ export const get = (...keys) => {
     keys.forEach(key => results[key] = MainStore.props.props.reduxStore[key]);
     return results;
   } else return MainStore.props.props.reduxStore[keys[0]];
+};
+
+export const destroy = (...keys) => {
+  if (logger) console.log('Destroy: ', ...keys);
+  keys.forEach(key => MainStore.props.props.deleteFromReduxStore(key));
 };
 
 export const isOfflineCacheEmpty = () => Object.keys(cache).length === 0;

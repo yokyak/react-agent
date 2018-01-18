@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, run, on, emit, isOfflineCacheEmpty } from '../../../react-agent';
+import { get, set, run, on, emit, destroy } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -59,6 +59,10 @@ class Chat extends Component {
     });
   }
 
+  clearMessages() {
+    destroy('messages');
+  }
+
   render() {
     const messages = get('messages');
     return (
@@ -71,8 +75,9 @@ class Chat extends Component {
         </div>
         <div id='text-area'>
           <textarea value={this.state.text} onChange={this.handleText.bind(this)} type='text'></textarea>
-          <button onClick={this.handleSend.bind(this)}>Send</button>
+          <button id='submit' onClick={this.handleSend.bind(this)}>Send</button>
         </div>
+        <button id='destroy' onClick={this.clearMessages.bind(this)}>Destroy</button>
       </div>
     );
   }
