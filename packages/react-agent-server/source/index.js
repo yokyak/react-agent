@@ -37,22 +37,28 @@ module.exports = (server, actions, database, logger = false) => {
     if (!offlineCache[socketID] || !offlineCache[socketID][actionId]) {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = { [actionId]: 0 };
-      if (logger) {
+      if (logger && typeof logger !== 'function') {
         if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
         else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
+      }
+      if (logger && typeof logger === 'function') {
+        if (request) logger('Key: ' + key + 'ID:' + actionId + ' From client: ' + request);
+        else logger('Key: ' + key + 'ID:' + actionId);
       }
       if (actions[key].pre) {
         for (let i = 0; i < actions[key].pre.length; i++) {
           const returned = actions[key].pre[i](request);
           if (returned === false) {
-            if (logger) console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
+            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
+            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
             return callback({ preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
         }
       }
 
-      if (logger && actions[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
+      if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
+      if (logger && typeof logger === 'function' && actions[key].pre) logger('  Pre: ' + 'Passed all function(s)');
 
       if (typeof actions[key].action !== 'function') {
         sequelize.query(actions[key].action, { bind: request })
