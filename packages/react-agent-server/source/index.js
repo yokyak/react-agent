@@ -107,7 +107,7 @@ module.exports = (server, actions, database, logger = false) => {
       if (subscribedSockets[data.key]) {
         runAction(data.key, data.request, data.actionId, data.socketID, (result) => {
           subscribedSockets[data.key].forEach((subSocket) => {
-            subSocket.emit('subscriber', result);
+            subSocket.emit('subscriber', result, data.actionId);
           });
         });
       }

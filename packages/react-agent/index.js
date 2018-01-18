@@ -6,7 +6,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
-let MainStore, socket, server = false, logger = false, providerStore, initialStore = false;
+let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false;
 
 const actionCreator = (object) => {
   return {
@@ -35,6 +35,31 @@ class AgentStore extends Component {
   componentWillMount() {
     if (initialStore) this.props.props.addToReduxStore(this.props.props.props.store);
   }
+
+  componentDidMount() {
+    if (offlinePopUp) {
+      window.addEventListener('beforeunload', (ev) => {
+        if (isOfflineCacheEmpty() === false) {
+          const message = '';
+          ev.returnValue = message;
+          return message;
+        }
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (offlinePopUp) {
+      window.removeEventListener('beforeunload', (ev) => {
+        if (isOfflineCacheEmpty() === false) {
+          const message = '';
+          ev.returnValue = message;
+          return message;
+        }
+      });
+    }
+  }
+
   render() {
     if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
       return <div></div>;
@@ -79,6 +104,9 @@ export const Agent = (props) => {
     providerStore = createStore(reducers, composeWithDevTools());
   } else {
     providerStore = createStore(reducers);
+  }
+  if (props.offlinePopUp && props.offlinePopUp === true) {
+    offlinePopUp = true;
   }
   return new ProviderWrapper(props);
 }
@@ -148,6 +176,8 @@ export const get = (...keys) => {
 
 export const isOfflineCacheEmpty = () => Object.keys(cache).length === 0;
 
+export const getCache = () => cache;
+
 export const getStore = () => MainStore.props.props.reduxStore;
 
 export const getStoreComponent = () => MainStore;
@@ -169,5 +199,8 @@ const setupSocket = () => {
       delete cache[data.actionId];
     }
   });
-  socket.on('subscriber', data => { subscriptions[data.key].func(data.response) });
+  socket.on('subscriber', data => {
+    subscriptions[data.key].func(data.response);
+    delete cache[data.actionId];
+  });
 }
