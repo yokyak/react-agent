@@ -46,7 +46,7 @@ module.exports = (server, actions, database, logger = false) => {
           const returned = actions[key].pre[i](request);
           if (returned === false) {
             if (logger) console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
-            return callback({ preError: 'React Agent: Not all server pre functions passed.', actionId });
+            return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
         }
@@ -66,9 +66,9 @@ module.exports = (server, actions, database, logger = false) => {
           .catch((error) => {
             console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
             if (actions[key].errorMessage) {
-              callback({ databaseError: actions[key].errorMessage, actionId });
+              callback({ key, databaseError: actions[key].errorMessage, actionId });
             } else {
-              callback({ databaseError: 'Error with database', actionId });
+              callback({ key, databaseError: 'Error with database', actionId });
             }
           });
       } else {
@@ -114,10 +114,17 @@ module.exports = (server, actions, database, logger = false) => {
     });
 
     socket.on('run', (data) => {
-      runAction(data.key, data.request, data.actionId, data.socketID, (result) => {
-        console.log(chalk.bold('  Callback: '), 'success');
-        socket.emit('response', result);
-        console.log(chalk.bold('  Completed: '), data.key, data.actionId);
+      let response = {};
+      data.keys.forEach((key, i) => {
+        runAction(key, data.request, data.actionId, data.socketID, (result) => {
+          console.log(chalk.bold('  Callback: '), 'success');
+          response[result.key] = result;
+          console.log(chalk.bold('  Completed: '), data.key, data.actionId);
+          if (i === data.keys.length - 1) {
+            if (data.keys.length === 1) response = response[data.keys[0]];
+            socket.emit('response', response);
+          }
+        });
       });
     });
 

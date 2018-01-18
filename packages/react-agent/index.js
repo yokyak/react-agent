@@ -130,16 +130,17 @@ export const Agent = (props) => {
   return new ProviderWrapper(props);
 }
 
-export const run = (key, request) => {
+export const run = (keys, request) => {
+  if (!Array.isArray(keys)) keys = [keys];
   if (!server) setupSocket();
   const actionId = uuidv4();
   if (logger) {
     if(!request) request = "none";
-    console.log('Run: ', key, '\nRequest: ', request, '\nID: ', actionId);
+    console.log('Run: ', keys, '\nRequest: ', request, '\nID: ', actionId);
   };
-  socket.emit('run', { key, request, actionId, socketID: socket.id });
+  socket.emit('run', { keys, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { key, request, actionId, resolve, reject, socketID: socket.id };
+    cache[actionId] = { keys, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -216,11 +217,22 @@ const setupSocket = () => {
     });
   });
   socket.on('response', data => {
-    if (cache[data.actionId]) {
-      if (data.preError) cache[data.actionId].reject(data.preError);
-      else if (data.databaseError) cache[data.actionId].reject(data.databaseError);
-      else cache[data.actionId].resolve(data.response);
-      delete cache[data.actionId];
+    let actionId = data.actionId;
+    let response = data.response;
+    
+    // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
+    // each response in the returned object will have the same the action id
+    if (!data.hasOwnProperty('actionId')) {
+      const keys = Object.keys(data);
+      actionId = data[keys[0]].actionId;
+      keys.forEach(key => data[key] = data[key].response);
+      response = data;
+    }
+    if (cache[actionId]) {
+      if (data.preError) cache[actionId].reject(data.preError);
+      else if (data.databaseError) cache[actionId].reject(data.databaseError);
+      else cache[actionId].resolve(response);
+      delete cache[actionId];
     }
   });
   socket.on('subscriber', data => {
