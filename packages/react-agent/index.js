@@ -79,9 +79,9 @@ class AgentStore extends Component {
   }
 
   render() {
-    // if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
-    //   return <div></div>;
-    // } else
+    if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
+      return <div></div>;
+    } else
     return this.props.props.props.children;
   }
 }
@@ -89,7 +89,7 @@ class AgentStore extends Component {
 class ReduxWrapper extends Component {
 
   renderStore() {
-    MainStore = <AgentStore props={this.props} />; // its cool that you can call props on MainStore
+    MainStore = <AgentStore props={this.props} />;
     return MainStore;
   }
 
