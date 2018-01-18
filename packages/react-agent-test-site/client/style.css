@@ -44,7 +44,6 @@ button {
   outline: none;
   background-color: #c0b283;
   color: white;
-  margin-left: 30px;
   cursor: pointer;
   border: none;
   font-family: 'Lora', serif;
@@ -81,6 +80,20 @@ button:hover {
 #text-area {
   display: flex;
   align-items: center;
+}
+
+#submit {
+  margin-left: 30px;
+}
+
+#destroy {
+  margin-top: 10px;
+  background-color: rgb(255, 30, 0);
+  margin-bottom: 50px;
+}
+
+#destroy:hover {
+  background-color: rgb(216, 29, 4);
 }
 
 textarea {
