@@ -16,7 +16,7 @@ class Login extends Component {
 
   handleLogin() {
     run('login', { username: this.state.user, password: this.state.password, cookie1: '123', cookie2: '456' })
-      .then(data => { set('username', data.username, 'id', data.id) })
+      .then(data => { set({ username: data.username, id: data.id }) })
       .catch(error => { alert(error) });
   }
 
