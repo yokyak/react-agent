@@ -39,7 +39,7 @@ module.exports = (server, actions, database, logger = false) => {
       else offlineCache[socketID] = { [actionId]: 0 };
       if (logger) {
         if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
-        else console.log(chalk.bold.green('Key: '), chalk.bold.blue(actions[key]), chalk.bold.blue('\nID:'), chalk.blue(actionId));
+        else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
       }
       if (actions[key].pre) {
         for (let i = 0; i < actions[key].pre.length; i++) {
