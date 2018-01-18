@@ -55,7 +55,7 @@ class ReduxWrapper extends Component {
     return MainStore;
   }
 
-  render() { 
+  render() {
     return this.renderStore();
   }
 }
@@ -140,6 +140,8 @@ export const get = (...keys) => {
     return results;
   } else return MainStore.props.props.reduxStore[keys[0]];
 };
+
+export const isOfflineCacheEmpty = () => Object.keys(cache).length === 0;
 
 export const getStore = () => MainStore.props.props.reduxStore;
 

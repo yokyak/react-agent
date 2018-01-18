@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { get, set, run, on, emit } from '../../../react-agent';
+import { get, set, run, on, emit, isOfflineCacheEmpty } from '../../../react-agent';
 
 class Chat extends Component {
   constructor(props) {
@@ -7,18 +7,6 @@ class Chat extends Component {
     this.state = {
       text: ''
     };
-  }
-
-  componentDidUpdate() { this.scrollToBottom() }
-
-  handleText(event) { this.setState({ text: event.target.value }) }
-
-  scrollToBottom() { this.messagesEnd.scrollIntoView({ behavior: 'instant' }) }
-
-  getPlanets() {
-    run('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
-      .then(data => { console.log(data) })
-      .catch(error => { alert(error) });
   }
 
   componentDidMount() {
@@ -33,6 +21,36 @@ class Chat extends Component {
     const { first, second, third } = get('first', 'second', 'third');
     console.log(first, second, third);
     console.log(get());
+
+    window.addEventListener('beforeunload', (ev) => {
+      if (isOfflineCacheEmpty() === false) {
+        const message = '';
+        ev.returnValue = message;
+        return message;
+      }
+    });
+  }
+
+  componentDidUpdate() { this.scrollToBottom() }
+
+  handleText(event) { this.setState({ text: event.target.value }) }
+
+  scrollToBottom() { this.messagesEnd.scrollIntoView({ behavior: 'instant' }) }
+
+  getPlanets() {
+    run('getPlanet', { url: 'https://swapi.co/api/planets/5/' })
+      .then(data => { console.log(data) })
+      .catch(error => { alert(error) });
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('beforeunload', (ev) => {
+      if (isOfflineCacheEmpty() === false) {
+        const message = '';
+        ev.returnValue = message;
+        return message;
+      }
+    });
   }
 
   handleSend() {
