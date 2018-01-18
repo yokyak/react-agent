@@ -179,7 +179,8 @@ export const set = (...args) => {
 };
 
 export const get = (...keys) => {
-  if (logger) console.log('Get: ', ...keys);
+  if (logger && typeof logger !== 'function') console.log('Get: ', ...keys);
+  if (logger && typeof logger === 'function') logger('Get: ' + keys);
   if (keys.length === 0) return MainStore.props.props.reduxStore;
   else if (keys.length > 1) {
     const results = {};
