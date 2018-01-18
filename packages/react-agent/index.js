@@ -8,10 +8,18 @@ const uuidv4 = require('uuid/v4');
 const cache = {}, subscriptions = {};
 let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false;
 
-const actionCreator = (object) => {
+const addToReduxStore = (object) => {
   return {
     type: Object.keys(object)[0],
     payload: object
+  }
+}
+
+const deleteFromReduxStore = (key) => {
+  // console.log('KEY', key);
+  return {
+    type: 'DESTROY: ' + key,
+    payload: key
   }
 }
 
@@ -20,11 +28,21 @@ const mapStateToProps = store => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addToReduxStore: object => dispatch(actionCreator(object))
+  addToReduxStore: object => dispatch(addToReduxStore(object)),
+  deleteFromReduxStore: object => dispatch(deleteFromReduxStore(object))
 });
 
+let newState;
+
 const storeReducer = (state = {}, action) => {
-  return Object.assign({}, state, action.payload);
+  switch (action.type.slice(0, 7)) {
+    case 'DESTROY':
+      newState = Object.assign({}, state);
+      delete newState[action.payload];
+      return newState;
+    default:
+      return Object.assign({}, state, action.payload);
+  }
 }
 
 const reducers = combineReducers({
@@ -63,7 +81,8 @@ class AgentStore extends Component {
   render() {
     if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
       return <div></div>;
-    } else return this.props.props.props.children;
+    } else
+    return this.props.props.props.children;
   }
 }
 
@@ -112,21 +131,21 @@ export const Agent = (props) => {
   return new ProviderWrapper(props);
 }
 
-export const run = (key, request) => {
+export const run = (keys, request) => {
+  if (!Array.isArray(keys)) keys = [keys];
   if (!server) setupSocket();
   const actionId = uuidv4();
   if (logger && typeof logger !== 'function') {
     if(!request) request = "none";
-    console.log('Run: ', key, '\nRequest: ', request, '\nID: ', actionId);
+    console.log('Run: ', keys, '\nRequest: ', request, '\nID: ', actionId);
   };
   if (logger && typeof logger === 'function') {
     if(!request) request = "none";
-    logger('Run: ' + key + 'Request: ' + request + 'ID: ' + actionId);
+    logger('Run: ' + keys + 'Request: ' + request + 'ID: ' + actionId);
   };
-
-  socket.emit('run', { key, request, actionId, socketID: socket.id });
+  socket.emit('run', { keys, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { key, request, actionId, resolve, reject, socketID: socket.id };
+    cache[actionId] = { keys, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -189,6 +208,11 @@ export const get = (...keys) => {
   } else return MainStore.props.props.reduxStore[keys[0]];
 };
 
+export const destroy = (...keys) => {
+  if (logger) console.log('Destroy: ', ...keys);
+  keys.forEach(key => MainStore.props.props.deleteFromReduxStore(key));
+};
+
 export const isOfflineCacheEmpty = () => Object.keys(cache).length === 0;
 
 export const getCache = () => cache;
@@ -207,11 +231,22 @@ const setupSocket = () => {
     });
   });
   socket.on('response', data => {
-    if (cache[data.actionId]) {
-      if (data.preError) cache[data.actionId].reject(data.preError);
-      else if (data.databaseError) cache[data.actionId].reject(data.databaseError);
-      else cache[data.actionId].resolve(data.response);
-      delete cache[data.actionId];
+    let actionId = data.actionId;
+    let response = data.response;
+    
+    // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
+    // each response in the returned object will have the same the action id
+    if (!data.hasOwnProperty('actionId')) {
+      const keys = Object.keys(data);
+      actionId = data[keys[0]].actionId;
+      keys.forEach(key => data[key] = data[key].response);
+      response = data;
+    }
+    if (cache[actionId]) {
+      if (data.preError) cache[actionId].reject(data.preError);
+      else if (data.databaseError) cache[actionId].reject(data.databaseError);
+      else cache[actionId].resolve(response);
+      delete cache[actionId];
     }
   });
   socket.on('subscriber', data => {
