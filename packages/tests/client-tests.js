@@ -1,16 +1,18 @@
-const chai = require('chai');
-const should = chai.should();
-const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
-import React, { Component } from '../react-agent/node_modules/react';
 import { render } from 'react-dom';
+import React, { Component } from '../react-agent/node_modules/react';
 import { Agent, get, set, getStoreComponent } from '../react-agent';
+
+const chai = require('chai');
+const jsdom = require('jsdom');
+
+const should = chai.should();
+const { JSDOM } = jsdom;
 
 describe('React Agent Client', () => {
 
   const initialStore = { first: 'firstValue', second: 'secondValue' };
-  const dom = new JSDOM(`<!DOCTYPE html><div id='root'></div>`);
-  
+  const dom = new JSDOM('<!DOCTYPE html><div id=\'root\'></div>');
+
   render(
     <Agent store={initialStore}>
       <div>
@@ -32,7 +34,7 @@ describe('React Agent Client', () => {
   describe('set method', () => {
     it('should add to the store with the proper key and value', () => {
       set('third', 'thirdValue', false);
-      store.state['third'].should.equal('thirdValue');
+      store.state.third.should.equal('thirdValue');
     });
   });
   describe('get method', () => {
