@@ -51,7 +51,7 @@ module.exports = (server, actions, database, logger = false) => {
           if (returned === false) {
             if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
             if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
-            return callback({ preError: 'React Agent: Not all server pre functions passed.', actionId });
+            return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
         }

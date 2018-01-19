@@ -1,5 +1,3 @@
-import { setTimeout } from 'timers';
-
 const { Agent } = require('../react-agent');
 const { run } = require('../react-agent');
 const { emit } = require('../react-agent');
@@ -130,7 +128,7 @@ describe('React Agent Server', () => {
     it('should return error if a function returns false', (done) => {
       actions = {
         getStudentClasses: {
-          pre: [() => false],
+          pre: [() => false],// should be able to take not an array too. need to change react server code
           action: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
         }
       };
