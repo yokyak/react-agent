@@ -46,12 +46,22 @@ module.exports = (server, actions, database, logger = false) => {
         else logger('Key: ' + key + 'ID:' + actionId);
       }
       if (actions[key].pre) {
-        for (let i = 0; i < actions[key].pre.length; i++) {
-          const returned = actions[key].pre[i](request);
+        if (Array.isArray(actions[key].pre)) {
+          for (let i = 0; i < actions[key].pre.length; i++) {
+            const returned = actions[key].pre[i](request);
+            if (returned === false) {
+              if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
+              if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
+              return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
+            }
+            request = returned;
+          }
+        } else {
+          const returned = actions[key].pre(request);
           if (returned === false) {
-            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
-            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
-            return callback({ preError: 'React Agent: Not all server pre functions passed.', actionId });
+            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass pre function`));
+            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass pre function`);
+            return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
         }
@@ -84,6 +94,8 @@ module.exports = (server, actions, database, logger = false) => {
         promise.then((response) => {
           console.log(chalk.bold('  Action function: '), 'success');
           callback({ key, response, actionId });
+        }).catch(error => {
+          callback({ key, actionError: `The action for ${key} rejected its promise.`, actionId })
         });
       }
     }
@@ -120,13 +132,14 @@ module.exports = (server, actions, database, logger = false) => {
     });
 
     socket.on('run', (data) => {
-      let response = {};
-      data.keys.forEach((key, i) => {
-        runAction(key, data.request, data.actionId, data.socketID, (result) => {
-          console.log(chalk.bold('  Callback: '), 'success');
+      let response = {}, finished = 0;
+      data.keys.forEach(key => {
+        runAction(key, data.request, data.actionId, data.socketID, result => {
+          finished++;
           response[result.key] = result;
-          console.log(chalk.bold('  Completed: '), data.key, data.actionId);
-          if (i === data.keys.length - 1) {
+          if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Completed: '), key, data.actionId);
+          if (logger && typeof logger === 'function' && actions[key].pre) logger('  Completed: ' + key + data.actionId);
+          if (finished === data.keys.length) {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }

@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yokyak/react-agent-server.git"
+    "url": "git+https://github.com/yokyak/react-agent.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yokyak/react-agent-server/issues"
+    "url": "https://github.com/yokyak/react-agent/issues"
   },
-  "homepage": "https://github.com/yokyak/react-agent-server#readme",
+  "homepage": "https://github.com/yokyak/react-agent#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
