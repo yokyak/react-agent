@@ -6,7 +6,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
-let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false;
+let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
 
 const addToReduxStore = (object) => {
   return {
@@ -112,7 +112,8 @@ class ProviderWrapper extends Component {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    if (server) socket = io.connect('http://localhost:3003');
+    if (server && testing) io.connect('http://localhost:3003');
+    else if (server) socket = io.connect();
   });
 }
 
@@ -128,6 +129,7 @@ export const Agent = (props) => {
   if (props.offlinePopUp && props.offlinePopUp === true) {
     offlinePopUp = true;
   }
+  if (props.testing && props.testing === true) testing = true;
   return new ProviderWrapper(props);
 }
 
@@ -223,7 +225,8 @@ export const getStoreComponent = () => MainStore;
 
 const setupSocket = () => {
   server = true;
-  socket = io.connect('http://localhost:3003');
+  if (testing) socket = io.connect('http://localhost:3003');
+  else socket = io.connect();
 
   socket.on('connect', () => {
     Object.values(cache).forEach(({ key, request, actionId, socketID }) => {

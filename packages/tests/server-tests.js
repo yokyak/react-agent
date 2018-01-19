@@ -110,7 +110,7 @@ describe('React Agent Server', () => {
     const dom = new JSDOM('<!DOCTYPE html><div id=\'root\'></div>');
 
     render(
-      <Agent>
+      <Agent testing={true}>
         <div>
           React Agent
         </div>
