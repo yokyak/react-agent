@@ -119,6 +119,7 @@ if (typeof window !== 'undefined') {
 export const Agent = (props) => {
   if (props.hasOwnProperty('store')) initialStore = true;
   if (props.logger && props.logger === true) logger = true;
+  if (props.logger && typeof props.logger === 'function') logger = props.logger;
   if (props.devTools && props.devTools === true) {
     providerStore = createStore(reducers, composeWithDevTools());
   } else {
@@ -134,9 +135,13 @@ export const run = (keys, request) => {
   if (!Array.isArray(keys)) keys = [keys];
   if (!server) setupSocket();
   const actionId = uuidv4();
-  if (logger) {
+  if (logger && typeof logger !== 'function') {
     if(!request) request = "none";
     console.log('Run: ', keys, '\nRequest: ', request, '\nID: ', actionId);
+  };
+  if (logger && typeof logger === 'function') {
+    if(!request) request = "none";
+    logger('Run: ' + keys + 'Request: ' + request + 'ID: ' + actionId);
   };
   socket.emit('run', { keys, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
@@ -146,14 +151,16 @@ export const run = (keys, request) => {
 
 export const on = (key, func) => {
   if (!server) setupSocket();
-  if (logger) console.log('On: ', key);
+  if (logger && typeof logger !== 'function') console.log('On: ', key);
+  if (logger && typeof logger === 'function') logger('On: ' + key);
   socket.emit('subscribe', { key });
   subscriptions[key] = { func };
 };
 
 export const unsubscribe = (key) => {
   if (!server) setupSocket();
-  if (logger) console.log('Unsubscribe: ', key);
+  if (logger && typeof logger !== 'function') console.log('Unsubscribe: ', key);
+  if (logger && typeof logger === 'function') logger('Unsubscribe: ' + key);
   socket.emit('unsubscribe', { key });
   delete subscriptions[key];
 };
@@ -161,9 +168,13 @@ export const unsubscribe = (key) => {
 export const emit = (key, request) => {
   if (!server) setupSocket();
   const actionId = uuidv4();
-  if (logger) {
+  if (logger && typeof logger !== 'function') {
     if(!request) request = "none";
     console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', actionId);
+  };
+  if (logger && typeof logger === 'function') {
+    if(!request) request = "none";
+    logger('Emit: ' + key + 'Request: ' + request + 'ID: ' + actionId);
   };
   socket.emit('emit', { key, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
@@ -173,10 +184,12 @@ export const emit = (key, request) => {
 
 export const set = (...args) => {
   if (args.length === 1 && typeof args[0] === 'object') {
-    if (logger) console.log('Set: ', args[0]);
+    if (logger && typeof logger !== 'function') console.log('Set: ', args[0]);
+    if (logger && typeof logger === 'function') logger('Set: ' + args[0]);
     MainStore.props.props.addToReduxStore(args[0]);
   } else {
-    if (logger) console.log('Set: ', ...args);
+    if (logger && typeof logger !== 'function') console.log('Set: ', ...args);
+    if (logger && typeof logger === 'function') logger('Set: ' + args);
     for (let i = 0; i < args.length; i = i + 2) {
       if (i + 1 === args.length) MainStore.props.props.addToReduxStore({ [args[i]]: null });
       else MainStore.props.props.addToReduxStore({ [args[i]]: args[i + 1] });
@@ -185,7 +198,8 @@ export const set = (...args) => {
 };
 
 export const get = (...keys) => {
-  if (logger) console.log('Get: ', ...keys);
+  if (logger && typeof logger !== 'function') console.log('Get: ', ...keys);
+  if (logger && typeof logger === 'function') logger('Get: ' + keys);
   if (keys.length === 0) return MainStore.props.props.reduxStore;
   else if (keys.length > 1) {
     const results = {};
