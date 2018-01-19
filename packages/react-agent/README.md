@@ -12,7 +12,7 @@ run('addUser', {user: 'Billy'})
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they receive live updates.
 
-React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging out-of-the-box with the Redux DevTools Chrome extension.
+React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging.
 
 *Why use React Agent?*
 
@@ -138,7 +138,6 @@ run('getAllUsers')
 ```
 
 
-
 ### `emit`, `on`, and `unsubscribe`
 
 In addition to `run`, three other methods interact with the server: `emit`, `on`, and `unsubscribe`.
@@ -188,17 +187,62 @@ run('addStudent', {name: Billy})
 
 ```
 
-##Additional Methods
+## Additional Methods and Features
+
+### Time Travel Debugging
+
+React Agent uses Redux under the hood for time travel debugging. To enable this feature, pass `offlinePopUp={true}` to the `<Agent>` wrapper. Then, use Redux DevTools Chrome extension to travel through time.
+
+ ```javascript
+render(
+ <Agent offlinePopUp={true}>
+   <App />
+ </Agent>
+ , document.querySelector('#root'));
+ ```
 
 ### `destroy`
+`destroy` is used to delete a property and its values from React Agent's store. You can pass in multiple properties to delete.
+
+```javascript
+destroy('messages')
+destroy('users', 'comments', 'messages')
+```
 
 ### `getStore`
 
+`getStore` returns an object containing the current state of React Agent's store.
+
+```javascript
+currentState = getStore()
+```
+
 ### `isOfflineCacheEmpty`
 
+`isOfflineCacheEmpty` returns a boolean indicating whether any action sent to the server has not yet sent a response to the client. This method can be useful to determine whether the client has unsaved changes. For example, say the network connection drops, but a user continues interacting with the site because of optimistic rendering. If `isOfflineCacheEmpty` is then called, it would return false.
 
+```javascript
+isOfflineCacheEmpty() // returns true or false
+```
 
+In fact, React Agent can alert a user that they have unsaved changes -- this feature is turned-off by default. If a user tries to navigate away from the site, it provides a pop-up warning. It uses `isOfflineCacheEmpty` under the hood. To turn on this feature, pass `offlinePopUp={true}` to the `<Agent>` wrapper.
 
+```javascript
+render(
+ <Agent offlinePopUp={true}>
+   <App />
+ </Agent>
+ , document.querySelector('#root'));
+ ```
+
+ ### `run`
+
+ `run` also accepts multiple keys as arguments in the form of an array. As its optional second argument, it takes an object which is passed to every action included in the array. In this configuration, `run` returns a promise, which resolves to an object containing the key of each action and its respective response from the server.
+
+```javacript
+run(['addUser', 'addMessage'], {user: 'Billy', message: 'trapped in a simulation.'})
+// returns {addUser: {id: 2956739}, addMessage: {time: 2018-01-19T01:10:47}}
+```
 
 ## Contributors
 

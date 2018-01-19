@@ -12,7 +12,7 @@ run('addUser', {user: 'Billy'})
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
 
-React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging out-of-the-box with the Redux DevTools Chrome extension.
+React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging.
 
 *Why use React Agent?*
 
