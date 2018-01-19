@@ -112,7 +112,7 @@ class ProviderWrapper extends Component {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    if (server) socket = io.connect();
+    if (server) socket = io.connect('http://localhost:3003');
   });
 }
 
@@ -223,7 +223,7 @@ export const getStoreComponent = () => MainStore;
 
 const setupSocket = () => {
   server = true;
-  socket = io.connect();
+  socket = io.connect('http://localhost:3003');
 
   socket.on('connect', () => {
     Object.values(cache).forEach(({ key, request, actionId, socketID }) => {
@@ -233,7 +233,7 @@ const setupSocket = () => {
   socket.on('response', data => {
     let actionId = data.actionId;
     let response = data.response;
-    
+
     // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
     // each response in the returned object will have the same the action id
     if (!data.hasOwnProperty('actionId')) {

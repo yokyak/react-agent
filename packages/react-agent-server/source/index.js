@@ -123,7 +123,7 @@ module.exports = (server, actions, database, logger = false) => {
       let response = {};
       data.keys.forEach((key, i) => {
         runAction(key, data.request, data.actionId, data.socketID, (result) => {
-          console.log(chalk.bold('  Callback: '), 'success');
+          if (!result.preError && !result.databaseError) console.log(chalk.bold('  Callback: '), 'success');
           response[result.key] = result;
           console.log(chalk.bold('  Completed: '), data.key, data.actionId);
           if (i === data.keys.length - 1) {
