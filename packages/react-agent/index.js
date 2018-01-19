@@ -233,18 +233,25 @@ const setupSocket = () => {
   socket.on('response', data => {
     let actionId = data.actionId;
     let response = data.response;
+    console.log(data);
     
     // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
     // each response in the returned object will have the same the action id
     if (!data.hasOwnProperty('actionId')) {
       const keys = Object.keys(data);
       actionId = data[keys[0]].actionId;
-      keys.forEach(key => data[key] = data[key].response);
+      keys.forEach(key => {
+        if (data[key].preError) data[key] = data[key].preError;
+        else if (data[key].databaseError) data[key] = data[key].databaseError;
+        else if (data[key].actionError) data[key] = data[key].actionError;
+        else data[key] = data[key].response;
+      });
       response = data;
     }
     if (cache[actionId]) {
       if (data.preError) cache[actionId].reject(data.preError);
       else if (data.databaseError) cache[actionId].reject(data.databaseError);
+      else if (data.actionError) cache[actionId].reject(data.actionError);
       else cache[actionId].resolve(response);
       delete cache[actionId];
     }
