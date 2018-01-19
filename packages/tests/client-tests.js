@@ -1,5 +1,5 @@
 import { render } from 'react-dom';
-import React, { Component } from '../react-agent/node_modules/react';
+import React from '../react-agent/node_modules/react';
 import { Agent, get, set, getStoreComponent } from '../react-agent';
 
 const chai = require('chai');
@@ -21,20 +21,15 @@ describe('React Agent Client', () => {
     </Agent>
     , dom.window.document.querySelector('#root'));
 
-  const store = getStoreComponent();
-
   describe('Agent Component', () => {
-    it('should extend the React Component class', () => {
-      (store instanceof Component).should.equal(true);
-    });
     it('should have a state that matches the initial store passed in', () => {
-      store.state.should.equal(initialStore);
+      JSON.stringify(get()).should.equal(JSON.stringify(initialStore));
     });
   });
   describe('set method', () => {
     it('should add to the store with the proper key and value', () => {
-      set('third', 'thirdValue', false);
-      store.state.third.should.equal('thirdValue');
+      set({ third: 'thirdValue' });
+      get('third').should.equal('thirdValue');
     });
   });
   describe('get method', () => {
