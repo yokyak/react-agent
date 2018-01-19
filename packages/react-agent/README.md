@@ -1,6 +1,6 @@
 # React Agent
 
-React Agent synchronizes client-side and server-side state.  It can be included in any React project without conflict with other state management tools or REST APIs.
+React Agent synchronizes client-side and server-side state. It can be included in any React project without conflict with other state management tools or REST APIs.
 
 React Agent is easy to learn.
 
@@ -10,19 +10,19 @@ Here's the basic idea: the client runs 'actions' that are defined on the server-
 run('addUser', {user: 'Billy'})
 ```
 
-These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
+These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they receive live updates.
 
-It features offline-support to render optimistic updates and then synchronization on reestablished network connection.
+React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging out-of-the-box with the Redux DevTools Chrome extension.
 
 *Why use React Agent?*
 
 The popular conceptualization of state management stores state in two places: data on the client-side and data on the server-side.
 
 To connect these, front-end and back-end developers usually write a lot of code such as HTTP requests, controllers, and routes. It can get complicated.
-![previous](./../../docs/imgs/before.png)
+![previous](./../../docs/imgs/before.gif)
 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
-![now](./../../docs/imgs/after.png)
+![now](./../../docs/imgs/after.gif)
 
 # Getting Started
 
@@ -187,6 +187,16 @@ run('addStudent', {name: Billy})
   })
 
 ```
+
+##Additional Methods
+
+### `destroy`
+
+### `getStore`
+
+### `isOfflineCacheEmpty`
+
+
 
 
 
