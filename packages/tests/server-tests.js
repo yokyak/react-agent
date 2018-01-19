@@ -36,7 +36,6 @@ describe('React Agent Server', () => {
   let actions;
 
   before(() => {
-
     client.query(`CREATE TABLE classes(
       name VARCHAR(100),
       department VARCHAR(100),
@@ -110,52 +109,69 @@ describe('React Agent Server', () => {
     const dom = new JSDOM('<!DOCTYPE html><div id=\'root\'></div>');
 
     render(
-      <Agent testing={true}>
+      <Agent testing>
         <div>
           React Agent
         </div>
       </Agent>
-      , dom.window.document.querySelector('#root'));
+      , dom.window.document.querySelector('#root'),
+    );
   });
 
   after(() => {
-
     client.query('DROP TABLE classes, students, classes_students');
-
   });
 
   describe('pre', () => {
     it('should return error if a function returns false', (done) => {
       actions = {
         getStudentClasses: {
-          pre: [() => false],// should be able to take not an array too. need to change react server code
-          action: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
-        }
+          pre: [() => false], // should be able to take not an array too. need to change react server code
+          action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+        },
       };
       agent(server, actions, db, true);
-      run('getStudentClasses').catch(err => {
+      run('getStudentClasses').catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
     });
 
-  //   it('should return error if one out of multiple functions returns false', (done) => {
-  //     actions = {
-  //       getStudentClasses: {
-  //         pre: [(request) => { return request.cookie === 'testCookie'}, (request) => { return request.id === 'testID' }],
-  //         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
-  //       }
-  //     };
-  //     agent(server, actions, db);
-  //   });
+    it('should return error if one out of multiple functions returns false', (done) => {
+      actions = {
+        getStudentClasses: {
+          pre: [(obj) => { if (obj.test === 'test') return obj; }, obj => false],
+          action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+        },
+      };
+      agent(server, actions, db, true);
+      run('getStudentClasses', { test: 'test' }).catch((err) => {
+        err.should.equal('React Agent: Not all server pre functions passed.');
+        done();
+      });
+    });
 
-  //   it('should return true if one function returns true', (done) => {
+    it('should run action if no functions returns false', (done) => {
+      actions = {
+        getStudentClasses: {
+          pre: [
+            request => request,
+            (request) => {
+              if (request.test === 'test') return request;
+              return false;
+            }],
+          action: 'SELECT name FROM students WHERE id === 3',
+          callback: response => console.log('R', response[0]),
+        },
+      };
+      agent(server, actions, db, true);
+      run('getStudentClasses', { test: 'test' })
+        .then((data) => {
+          data.student.should.equal('');
+          done();
+        });
+    });
 
-  //   });
-
-  //   it('should return true if all functions return true', (done) => {
-
-  //   });
   // });
 
   // describe('action', () => {
