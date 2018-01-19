@@ -1,11 +1,12 @@
 require('babel-polyfill');
 
-module.exports = (server, actions, database, logger = false) => {
+module.exports = (server, actions, database, logger = false, stop = false) => {
   const socketio = require('socket.io');
   const io = socketio(server);
   const chalk = require('chalk');
   let sequelize;
   let offlineCache = {};
+  let socket;
 
   if (database) {
     const Sequelize = require('sequelize');
@@ -90,6 +91,8 @@ module.exports = (server, actions, database, logger = false) => {
   };
 
   io.on('connection', (socket) => {
+    socket = socket;
+
     socket.on('subscribe', ({ key }) => {
       if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
@@ -125,10 +128,13 @@ module.exports = (server, actions, database, logger = false) => {
         runAction(key, data.request, data.actionId, data.socketID, (result) => {
           if (!result.preError && !result.databaseError) console.log(chalk.bold('  Callback: '), 'success');
           response[result.key] = result;
-          console.log(chalk.bold('  Completed: '), data.key, data.actionId);
+          console.log(chalk.bold('  Completed: '), key, data.actionId);
           if (i === data.keys.length - 1) {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
+          }
+          if (stop) {
+            throw new Error('Ending for testing');
           }
         });
       });

@@ -126,12 +126,12 @@ describe('React Agent Server', () => {
     it('should return error if a function returns false', (done) => {
       actions = {
         getStudentClasses: {
-          pre: [() => false], // should be able to take not an array too. need to change react server code
+          pre: [(request) => false],
           action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
         },
       };
-      agent(server, actions, db, true);
-      run('getStudentClasses').catch((err) => {
+      agent(server, actions, db, true, true);
+      run('getStudentClasses', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
@@ -139,13 +139,19 @@ describe('React Agent Server', () => {
 
     it('should return error if one out of multiple functions returns false', (done) => {
       actions = {
-        getStudentClasses: {
-          pre: [(obj) => { if (obj.test === 'test') return obj; }, obj => false],
+        getStudents: {
+          pre: [
+            (request) => {
+              if (request.test === 'test') return request;
+              return false;
+            },
+            () => false,
+          ],
           action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
         },
       };
-      agent(server, actions, db, true);
-      run('getStudentClasses', { test: 'test' }).catch((err) => {
+      agent(server, actions, db, true, true);
+      run('getStudents', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
@@ -153,9 +159,12 @@ describe('React Agent Server', () => {
 
     it('should run action if no functions returns false', (done) => {
       actions = {
-        getStudentClasses: {
+        getClasses: {
           pre: [
-            request => request,
+            (request) => {
+              if (request) return request;
+              return false;
+            },
             (request) => {
               if (request.test === 'test') return request;
               return false;
@@ -164,8 +173,8 @@ describe('React Agent Server', () => {
           callback: response => console.log('R', response[0]),
         },
       };
-      agent(server, actions, db, true);
-      run('getStudentClasses', { test: 'test' })
+      agent(server, actions, db, true, true);
+      run('getClasses', { test: 'test' })
         .then((data) => {
           data.student.should.equal('');
           done();
