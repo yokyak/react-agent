@@ -7,22 +7,22 @@ React Agent is easy to learn.
 Here's the basic idea: the client runs 'actions' that are defined on the server-side.
 
 ```javascript
-run('addUser', {user: 'Billy'})
+run('addUser', { user: 'Billy' })
 ```
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
 
-It features offline-support to render optimistic updates and then synchronization on reestablished network connection.
+React Agent includes offline-support to render optimistic updates and then synchronization on reestablished network connection. It also features time travel debugging.
 
 *Why use React Agent?*
 
 The popular conceptualization of state management stores state in two places: data on the client-side and data on the server-side.
 
 To connect these, front-end and back-end developers usually write a lot of code such as HTTP requests, controllers, and routes. It can get complicated.
-![previous](./../../docs/imgs/before.png)
+![previous](./../../docs/imgs/diagram-before.gif)
 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
-![now](./../../docs/imgs/after.png)
+![now](./../../docs/imgs/diagram-after.gif)
 
 # Getting Started
 
@@ -41,19 +41,19 @@ npm install react-agent-server --save
 First, `require` React Agent Server into your server-side script.
 
 ```javascript
-const agent = require('react-agent-server');
+const agent = require('react-agent-server')
 ```
 
 The `agent` method is called with a server, actions and database object.
 
 ```javascript
-const server = http.createServer(fn).listen(3000);
+const server = http.createServer(fn).listen(3000)
 
 const actions = {
   getMessages: {
     action: 'SELECT * FROM posts'
   }
-};
+}
 
 const database = {
   name: 'billy',
@@ -62,9 +62,9 @@ const database = {
   dialect: 'postgres',
   host: 'rabbit.db.elephantsql.com',
   port: 3421
-};
+}
 
-agent(server, actions, database);
+agent(server, actions, database)
 ```
 With this setup, whenever `run('getMessages')` is called from the client-side (via React Agent), the corresponding SQL query ("SELECT * FROM posts") under the `action` property for `getMessages` will be ran.
 
@@ -77,14 +77,14 @@ const actions = {
   getMessages: {
     action: 'SELECT * FROM posts',
     callback: response => {
-      console.log(response);
-      return { messages: response[0] };
+      console.log(response)
+      return { messages: response[0] }
     }
   }
-};
+}
 ```
 
-In the event of a database error, a custom error message can be sent back to the client. This error message is passed into the client Promise rejection so it will appear in a `catch` block. The default error message is 'Error with database'.
+In the event of a database error, a custom error message can be sent back to the client. This error message is passed into the client promise rejection so it will appear in a `catch` block. The default error message is 'Error with database'.
 
 ```javascript
 const actions = {
@@ -93,21 +93,21 @@ const actions = {
     callback: response => ({ messages: response[0] }),
     errorMessage: 'Problem retrieving messages.'
   }
-};
+}
 ```
 
-A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return false, the Promise that the client-side `run` method returns will be rejected and the action will not run.
+A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `run` method returns will be rejected and the action will not run.
 
 ```javascript
 login: {
     pre: [
       request => {
-        if (request.cookie1 === '123') return request;
-        else return false;
+        if (request.cookie1 === '123') return request
+        else return false
       },
       request => {
-        if (request.cookie2 === '456') return request;
-        else return false;
+        if (request.cookie2 === '456') return request
+        else return false
       }
     ],
     action: 'SELECT username, _id FROM users WHERE username = $user AND password = $password',
@@ -123,20 +123,20 @@ run('login', { user: 'Bob', password: 'superstrongpassword' })
 
 Then the appropriate values with those property names will be injected into the SQL string. React Agent uses Sequelize under the hood, which handles input sanitization protecting against many different types of SQL injection attacks.
 
-Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed both a `resolve` and `reject` argument (from a `new Promise` within the library), along with the request object passed in from the client-side `run` call. The use of a Promise makes dealing with asynchronous code in the action easy.
+Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed both a `resolve` and `reject` argument (from a `new Promise` within the library), along with the request object passed in from the client-side `run` call. The use of a promise makes dealing with asynchronous code in the action easy.
 
 ```javascript
 const actions = {
   getPlanet: {
     action: (resolve, reject, request) => {
-      const url = request.url;
+      const url = request.url
       fetch(url, (error, response, body) => {
-        if (error) reject(error);
-        else resolve(body);
-      });
+        if (error) reject(error)
+        else resolve(body)
+      })
     }
   }
-};
+}
 ```
 
 ## Contributors
