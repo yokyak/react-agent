@@ -1,12 +1,15 @@
 require('babel-polyfill');
 
 module.exports = (server, actions, database, logger = false, stop = false) => {
+
+try {
   const socketio = require('socket.io');
   const io = socketio(server);
   const chalk = require('chalk');
   let sequelize;
   let offlineCache = {};
   let socket;
+  let stop2 = false;
 
   if (database) {
     const Sequelize = require('sequelize');
@@ -60,8 +63,8 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
         } else {
           const returned = actions[key].pre(request);
           if (returned === false) {
-            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
-            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
+            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass pre function`));
+            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass pre function`);
             return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
@@ -146,12 +149,20 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }
-          // if (stop) {
-          //   throw new Error('Ending for testing');
-          // }
+          if (stop) { // must throw to exit function so new action can be run for tests
+            setTimeout(() => { // setTimeout since emit is async above
+              throw new Error('ending stop') //process.exit() //ends the agent function
+              // socket.disconnect();
+            }, 100);
+          }
+          // if (stop) stop2 = true;
         });
       });
     });
+
+    // if (stop) {
+    //   setTimeout(return, 400)
+    // }
 
     // Search through each key in subscribedSockets object and look for matching socket
     // Remove matching socket from each of the arrays corresponding to the key
@@ -166,4 +177,9 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
       });
     });
   });
+}
+
+catch (e) { // won't catch bc async
+  return;
+}
 };
