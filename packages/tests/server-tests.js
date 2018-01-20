@@ -11,10 +11,11 @@ const pg = require('pg');
 const chai = require('chai');
 const jsdom = require('jsdom');
 
+/*eslint-disable*/
+
 const { JSDOM } = jsdom;
 const should = chai.should();
 const app = express();
-let server;
 
 const uri = 'postgres://nupdilwa:wKwvHTFrRlqfKgJAQ5088RaCIhDJLHz5@nutty-custard-apple.db.elephantsql.com:5432/nupdilwa';
 
@@ -115,53 +116,52 @@ describe('React Agent Server', () => {
       </Agent>
       , dom.window.document.querySelector('#root'),
     );
+
+    const server = app.listen(3003);
+
+    actions = {
+      getStudentClasses: {
+        pre: request => false,
+        action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+      },
+      getStudents: {
+        pre: [
+          (request) => {
+            if (request.test === 'test') return request;
+            return false;
+          },
+          () => false,
+        ],
+        action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+      }
+    };
+
+    agent(server, actions, db, true);
+
+
   });
 
-
-  beforeEach(() => {
-    server = app.listen(3003);
-  })
 
   after(() => {
     client.query('DROP TABLE classes, students, classes_students');
   });
 
-  afterEach(() => {
-    server.close();
-  })
+  describe('pre', function () {
+    this.timeout(3000);
 
-  describe('pre', () => {
     it('should return error if a function returns false', (done) => {
-      actions = {
-        getStudentClasses: {
-          pre: [(request) => false],
-          action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
-        },
-      };
-      agent(server, actions, db, true, true);
+
       run('getStudentClasses', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
-        setTimeout(done, 100); // timeout so client has time to remove action from offline cache
+        done();
       });
     });
 
     it('should return error if one out of multiple functions returns false', (done) => {
-      actions = {
-        getStudents: {
-          pre: [
-            (request) => {
-              if (request.test === 'test') return request;
-              return false;
-            },
-            () => false,
-          ],
-          action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
-        },
-      };
-      agent(server, actions, db, true, true);
+
       run('getStudents', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
-        setTimeout(done, 100);
+        done();
       });
     });
 

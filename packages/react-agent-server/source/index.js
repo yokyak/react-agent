@@ -1,15 +1,13 @@
 require('babel-polyfill');
 
-module.exports = (server, actions, database, logger = false, stop = false) => {
+module.exports = (server, actions, database, logger = false) => {
 
-try {
   const socketio = require('socket.io');
   const io = socketio(server);
   const chalk = require('chalk');
   let sequelize;
   let offlineCache = {};
   let socket;
-  let stop2 = false;
 
   if (database) {
     const Sequelize = require('sequelize');
@@ -149,20 +147,9 @@ try {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }
-          if (stop) { // must throw to exit function so new action can be run for tests
-            setTimeout(() => { // setTimeout since emit is async above
-              throw new Error('ending stop') //process.exit() //ends the agent function
-              // socket.disconnect();
-            }, 100);
-          }
-          // if (stop) stop2 = true;
         });
       });
     });
-
-    // if (stop) {
-    //   setTimeout(return, 400)
-    // }
 
     // Search through each key in subscribedSockets object and look for matching socket
     // Remove matching socket from each of the arrays corresponding to the key
@@ -178,8 +165,3 @@ try {
     });
   });
 }
-
-catch (e) { // won't catch bc async
-  return;
-}
-};
