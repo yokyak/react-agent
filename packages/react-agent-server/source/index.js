@@ -133,9 +133,9 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }
-          if (stop) {
-            throw new Error('Ending for testing');
-          }
+          // if (stop) {
+          //   throw new Error('Ending for testing');
+          // }
         });
       });
     });
