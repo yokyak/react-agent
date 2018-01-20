@@ -10,6 +10,7 @@ const express = require('express');
 const pg = require('pg');
 const chai = require('chai');
 const jsdom = require('jsdom');
+const fetch = require('request');
 
 /*eslint-disable*/
 
@@ -21,7 +22,6 @@ const uri = 'postgres://nupdilwa:wKwvHTFrRlqfKgJAQ5088RaCIhDJLHz5@nutty-custard-
 
 const client = new pg.Client(uri);
 client.connect();
-
 
 describe('React Agent Server', () => {
   const db = {
@@ -133,12 +133,44 @@ describe('React Agent Server', () => {
           () => false,
         ],
         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
-      }
+      },
+      getClasses: {
+        pre: [
+          (request) => {
+            if (request) return request;
+            return false;
+          },
+          (request) => {
+            if (request.test === 'test') return request;
+            return false;
+          }],
+        action: `SELECT name FROM students WHERE id = 3`,
+        callback: response => {
+          return response[0][0].name;
+        }
+      },
+      getStudentsInTwoClasses: {
+        action: 'SELECT s.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id WHERE c.name = $class1 OR c.name = $class2',
+        callback: response => {
+          const names = {names: []};
+          response[0].forEach(x => {
+            names.names.push(x.name);
+          })
+          console.log('NAMES', names)
+          return names;
+        }
+      },
+      getImage: {
+          action: (resolve, reject, body) => {
+          fetch(body.url, (error, response, body) => {
+            if(error) reject(error);
+            else resolve('success');
+          })
+        }
+      },
     };
 
     agent(server, actions, db, true);
-
-
   });
 
 
@@ -165,59 +197,36 @@ describe('React Agent Server', () => {
       });
     });
 
-    // it('should run action if no functions returns false', (done) => {
-    //   actions = {
-    //     getClasses: {
-    //       pre: [
-    //         (request) => {
-    //           if (request) return request;
-    //           return false;
-    //         },
-    //         (request) => {
-    //           if (request.test === 'test') return request;
-    //           return false;
-    //         }],
-    //       action: 'SELECT name FROM students WHERE id === 3',
-    //       callback: response => console.log('R', response[0]),
-    //     },
-    //   };
-    //   agent(server, actions, db, true, true);
-    //   run('getClasses', { test: 'test' })
-    //     .then((data) => {
-    //       data.student.should.equal('');
-    //       done();
-    //     });
-    // });
+    it('should run action if no functions returns false', (done) => {
 
-  // });
+      run('getClasses', { test: 'test' })
+        .then((data) => {
+          data.should.equal('Tiffany');
+          done();
+        });
+    });
 
-  // describe('action', () => {
-  //   it('should execute SQL command with ? replacement', (done) => {
+  });
 
+  describe('action', () => {
+    it('should execute SQL command with ? replacement', (done) => {
 
-  //     actions = {
-  //       addStudent: {
-  //         action: `INSERT INTO students VALUES(?, ?)`
-  //       }
-  //     };
-  //     agent(server, actions, db);
+      run('getStudentsInTwoClasses', { class1: 'Algorithms', class2: 'Examining Gender in the 21st C.' })
+        .then( data => {
+          data.names.should.deep.equal([ 'Jaimie', 'Peter', 'Justin' ]);
+          done();
+        })
+    })
 
+    it('should run non-SQL functions', (done) => {
 
-  //   });
-
-  //   it('should run non-SQL functions', (done) => {
-
-
-  //     actions = {
-  //       addStudent: {
-  //         action: `INSERT INTO students VALUES(?, ?)`
-  //       }
-  //     };
-  //     agent(server, actions, db);
-
-
-  //   });
-  // });
+      run('getImage', { url: 'https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-after.gif' })
+        .then( data => {
+          data.should.equal('success');
+          done();
+        })
+    });
+  });
 
   // describe('set', () => {
   //   it('should return updated values to subscribed keys', (done) => {
@@ -227,7 +236,6 @@ describe('React Agent Server', () => {
   //         action: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
   //       }
   //     };
-  //     agent(server, actions, db);
   //   });
   // });
 
@@ -257,7 +265,6 @@ describe('React Agent Server', () => {
   //         action: `INSERT INTO studens VALUES(?, ?)`
   //       }
   //     };
-  //     agent(server, actions, db);
   //   });
 
   //   it('should overwrite default error message', (done) => {
@@ -267,8 +274,7 @@ describe('React Agent Server', () => {
   //         error: `Student entry error for action 'addStudent'`
   //       }
   //     };
-  //     agent(server, actions, db);
     // });
-  });
+  // });
 });
 
