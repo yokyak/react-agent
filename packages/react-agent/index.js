@@ -6,7 +6,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
-let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
+let MainStore, socket, port, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
 
 const addToReduxStore = (object) => {
   return {
@@ -16,7 +16,6 @@ const addToReduxStore = (object) => {
 }
 
 const deleteFromReduxStore = (key) => {
-  // console.log('KEY', key);
   return {
     type: 'DESTROY: ' + key,
     payload: key
@@ -112,7 +111,7 @@ class ProviderWrapper extends Component {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    if (server && testing) io.connect('http://localhost:3003');
+    if (server && testing) io.connect(port);
     else if (server) socket = io.connect();
   });
 }
@@ -129,7 +128,10 @@ export const Agent = (props) => {
   if (props.offlinePopUp && props.offlinePopUp === true) {
     offlinePopUp = true;
   }
-  if (props.testing && props.testing === true) testing = true;
+  if (props.testing) {
+    testing = true;
+    port = props.testing;
+  }
   return new ProviderWrapper(props);
 }
 
@@ -225,7 +227,7 @@ export const getStoreComponent = () => MainStore;
 
 const setupSocket = () => {
   server = true;
-  if (testing) socket = io.connect('http://localhost:3003');
+  if (testing) socket = io.connect(port);
   else socket = io.connect();
 
   socket.on('connect', () => {

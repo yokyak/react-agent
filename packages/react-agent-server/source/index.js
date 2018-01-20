@@ -97,10 +97,12 @@ module.exports = (server, actions, database, logger = false) => {
           actions[key].action(resolve, reject, request);
         });
         promise.then((response) => {
-          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'success');
-          if (logger && typeof logger === 'function') logger('  Action function: success');
+          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
+          if (logger && typeof logger === 'function') logger('  Action function: resolved');
           callback({ key, response, actionId });
         }).catch(error => {
+          if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
+          if (logger && typeof logger === 'function') logger('  Action function: rejected');
           callback({ key, actionError: `The action for ${key} rejected its promise.`, actionId })
         });
       }

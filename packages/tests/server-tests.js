@@ -34,7 +34,7 @@ describe('React Agent Server', () => {
   };
 
   let actions;
-  const  messages = [];
+  const messages = [];
 
   before(() => {
     client.query(`CREATE TABLE classes(
@@ -110,7 +110,7 @@ describe('React Agent Server', () => {
     const dom = new JSDOM('<!DOCTYPE html><div id=\'root\'></div>');
 
     render(
-      <Agent testing>
+      <Agent testing={'http://localhost:3003'}>
         <div>
           React Agent
         </div>
@@ -121,11 +121,11 @@ describe('React Agent Server', () => {
     const server = app.listen(3003);
 
     actions = {
-      getStudentClasses: {
+      getStudentClassesFail: {
         pre: request => false,
         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
       },
-      getStudents: {
+      getStudentsFail: {
         pre: [
           (request) => {
             if (request.test === 'test') return request;
@@ -135,7 +135,7 @@ describe('React Agent Server', () => {
         ],
         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
       },
-      getClasses: {
+      getStudentByID: {
         pre: [
           (request) => {
             if (request) return request;
@@ -157,7 +157,6 @@ describe('React Agent Server', () => {
           response[0].forEach(x => {
             names.names.push(x.name);
           })
-          console.log('NAMES', names)
           return names;
         }
       },
@@ -169,10 +168,67 @@ describe('React Agent Server', () => {
           })
         }
       },
+      getStudents: {
+        action: 'SELECT name FROM students',
+        callback: response => {
+          return response[0].map(x => {
+            return x.name;
+          })
+        },
+      },
+      addClassDatabaseError: {
+        action: `INSERT INTO studens VALUES(?, ?)`
+      },
+      actionFuncError: {
+        action: (resolve, reject) => {
+          reject();
+        }
+      },
+      addClassNewError: {
+        action: `INSERT INTO studens VALUES(?, ?)`,
+        errorMessage: `Class entry error for action 'addClassNewError'`
+      },
+      fullLog: {
+        pre: [
+          (request) => {
+            if (request) return request;
+            return false;
+          },
+          (request) => {
+            if (request.test === 'test') return request;
+            return false;
+          }],
+        action: `SELECT * from classes`,
+        callback: response => response[0],
+      },
+      preErrorSingleFunction: {
+        pre: request => false,
+        action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+      },
+      preErrorMultipleFunctions: {
+        pre: [
+          (request) => {
+            if (request) return request;
+            return false;
+          },
+          (request) => {
+            return false;
+          }],
+        action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+      },
+      databaseError: {
+        action: 'SELECT s.names, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
+      },
+      actionFunctionError: {
+        action: (resolve, reject) => {
+          reject();
+        }
+      }
     };
 
     const loggingFunc = (message) => {
-      console.log(message);
+      // to help debug tests, uncomment console.log below
+      // console.log(message);
       messages.push(message);
     };
 
@@ -184,39 +240,35 @@ describe('React Agent Server', () => {
     client.query('DROP TABLE classes, students, classes_students');
   });
 
-  describe('pre', function () {
-    this.timeout(3000);
+  describe('pre', () => {
 
     it('should return error if a function returns false', (done) => {
-
-      run('getStudentClasses', { test: 'test' }).catch((err) => {
+      run('getStudentClassesFail', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
     });
 
     it('should return error if one out of multiple functions returns false', (done) => {
-
-      run('getStudents', { test: 'test' }).catch((err) => {
+      run('getStudentsFail', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
     });
 
     it('should run action if no functions returns false', (done) => {
-
-      run('getClasses', { test: 'test' })
-        .then((data) => {
-          data.should.equal('Tiffany');
-          done();
-        });
+      run('getStudentByID', { test: 'test' })
+          .then((data) => {
+            data.should.equal('Tiffany');
+            done();
+          });
     });
 
   });
 
   describe('action', () => {
-    it('should execute SQL command with ? replacement', (done) => {
 
+    it('should execute SQL command with ? replacement', (done) => {
       run('getStudentsInTwoClasses', { class1: 'Algorithms', class2: 'Examining Gender in the 21st C.' })
         .then( data => {
           data.names.should.deep.equal([ 'Jaimie', 'Peter', 'Justin' ]);
@@ -225,7 +277,6 @@ describe('React Agent Server', () => {
     })
 
     it('should resolve non-SQL functions', (done) => {
-
       run('getImage', { url: 'https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-after.gif' })
         .then(data => {
           data.should.equal('success');
@@ -234,46 +285,91 @@ describe('React Agent Server', () => {
     });
   });
 
-  describe('callback', () => {
-    it('should execute with response from action', (done) => {
+  describe('callback', (done) => {
 
-    });
-
-    it('should send response to client', (done) => {
-
+    it('should execute with response from action and should return values to client', (done) => {
+      const students = [ 'Tom', 'Henry', 'Tiffany', 'Andrew', 'Eric', 'Althea', 'Monica', 'Mike', 'Peter', 'Justin', 'Jaimie', 'Annie', 'Dale', 'Erik' ];
+      run('getStudents')
+        .then(data => {
+          data.should.deep.equal(students)
+          done();
+        })
     });
   });
 
-  describe('errorMessage', () => {
+  describe('errorMessage', (done) => {
 
-    it('should send default error to client', (done) => {
-      actions = {
-        addStudent: {
-          action: `INSERT INTO studens VALUES(?, ?)`
-        }
-      };
+    it('should send default error to client for database errors', (done) => {
+      run('addClassDatabaseError')
+        .catch(err => {
+          err.should.equal('Error with database')
+          done();
+        })
+    });
+
+    it('should send default error to client for action function errors', (done) => {
+      run('actionFuncError')
+        .catch(err => {
+          err.should.equal('The action for actionFuncError rejected its promise.')
+          done();
+        })
     });
 
     it('should overwrite default error message', (done) => {
-      actions = {
-        addStudent: {
-          action: `INSERT INTO studens VALUES(?, ?)`,
-          error: `Student entry error for action 'addStudent'`
-        }
-      };
+      run('addClassNewError')
+        .catch(err => {
+          err.should.equal(`Class entry error for action 'addClassNewError'`);
+          done();
+        })
     });
   });
 
   describe('logger', () => {
 
     it('should log key, actionID, client object, pre, and completed', (done) => {
-
+      run('fullLog', {test: 'test'})
+        .then(data => {
+          messages[messages.length - 4].slice(0 , 45).should.have.lengthOf(45); // checking to see if UUID is included
+          messages[messages.length - 4].slice(0, 14).should.equal(`Key: fullLogID`);
+          messages[messages.length - 3].should.equal('  From client: {"test":"test"}');
+          messages[messages.length - 2].should.equal('  Pre: Passed all function(s)');
+          messages[messages.length - 1].slice(0, 20).should.equal('  Completed: fullLog');
+          messages[messages.length - 1].slice(0, 45).should.have.lengthOf(45); // checking to see if UUID is included
+          done();
+        })
     });
 
-    it('should log errors', (done) => {
-
+    it('should log pre errors with one function', (done) => {
+      run('preErrorSingleFunction', {test: 'test'})
+        .catch(data => {
+          messages[messages.length - 2].should.equal('  Pre-error: did not pass pre function')
+          done();
+        })
     })
 
+    it('should log pre errors with multiple functions', (done) => {
+      run('preErrorMultipleFunctions', {test: 'test'})
+        .catch(data => {
+          messages[messages.length - 2].should.equal('  Pre-error: did not pass function #2')
+          done();
+        })
+    })
+
+    it('should log errors with the database', (done) => {
+      run('databaseError', {test: 'test'})
+      .catch(data => {
+        messages[messages.length - 2].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
+        done();
+      })
+    })
+
+    it('should log rejections with the action function', (done) => {
+      run('actionFunctionError', {test: 'test'})
+      .catch(data => {
+        messages[messages.length - 1].should.equal('  Action function: rejected')
+        done();
+      })
+    })
   });
 });
 
