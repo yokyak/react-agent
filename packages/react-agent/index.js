@@ -6,7 +6,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
-let MainStore, socket, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false;
+let MainStore, socket, port, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
 
 const addToReduxStore = (object) => {
   return {
@@ -16,7 +16,6 @@ const addToReduxStore = (object) => {
 }
 
 const deleteFromReduxStore = (key) => {
-  // console.log('KEY', key);
   return {
     type: 'DESTROY: ' + key,
     payload: key
@@ -112,7 +111,8 @@ class ProviderWrapper extends Component {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    if (server) socket = io.connect();
+    if (server && testing) io.connect(port);
+    else if (server) socket = io.connect();
   });
 }
 
@@ -127,6 +127,10 @@ export const Agent = (props) => {
   }
   if (props.offlinePopUp && props.offlinePopUp === true) {
     offlinePopUp = true;
+  }
+  if (props.testing) {
+    testing = true;
+    port = props.testing;
   }
   return new ProviderWrapper(props);
 }
@@ -223,7 +227,8 @@ export const getStoreComponent = () => MainStore;
 
 const setupSocket = () => {
   server = true;
-  socket = io.connect();
+  if (testing) socket = io.connect(port);
+  else socket = io.connect();
 
   socket.on('connect', () => {
     Object.values(cache).forEach(({ key, request, actionId, socketID }) => {
@@ -233,8 +238,7 @@ const setupSocket = () => {
   socket.on('response', data => {
     let actionId = data.actionId;
     let response = data.response;
-    console.log(data);
-    
+
     // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
     // each response in the returned object will have the same the action id
     if (!data.hasOwnProperty('actionId')) {

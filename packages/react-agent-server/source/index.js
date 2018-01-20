@@ -1,6 +1,7 @@
 require('babel-polyfill');
 
 module.exports = (server, actions, database, logger = false) => {
+
   const socketio = require('socket.io');
   const io = socketio(server);
   const chalk = require('chalk');
@@ -38,11 +39,12 @@ module.exports = (server, actions, database, logger = false) => {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = { [actionId]: 0 };
       if (logger && typeof logger !== 'function') {
-        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
+        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold('  From client: '), request);
         else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
       }
       if (logger && typeof logger === 'function') {
-        if (request) logger('Key: ' + key + 'ID:' + actionId + ' From client: ' + request);
+        if (request) logger('Key: ' + key + 'ID:' + actionId);
+        if (request) logger('  From client: ' + JSON.stringify(request));
         else logger('Key: ' + key + 'ID:' + actionId);
       }
       if (actions[key].pre) {
@@ -80,7 +82,9 @@ module.exports = (server, actions, database, logger = false) => {
             }
           })
           .catch((error) => {
-            console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
+            if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
+            if (logger && typeof logger === 'function') logger('  Error with database: ' + error);
+            if (request) logger('  Error with database: ' + error);
             if (actions[key].errorMessage) {
               callback({ key, databaseError: actions[key].errorMessage, actionId });
             } else {
@@ -92,9 +96,12 @@ module.exports = (server, actions, database, logger = false) => {
           actions[key].action(resolve, reject, request);
         });
         promise.then((response) => {
-          console.log(chalk.bold('  Action function: '), 'success');
+          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
+          if (logger && typeof logger === 'function') logger('  Action function: resolved');
           callback({ key, response, actionId });
         }).catch(error => {
+          if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
+          if (logger && typeof logger === 'function') logger('  Action function: rejected');
           callback({ key, actionError: `The action for ${key} rejected its promise.`, actionId })
         });
       }
@@ -102,6 +109,7 @@ module.exports = (server, actions, database, logger = false) => {
   };
 
   io.on('connection', (socket) => {
+
     socket.on('subscribe', ({ key }) => {
       if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
@@ -160,4 +168,4 @@ module.exports = (server, actions, database, logger = false) => {
       });
     });
   });
-};
+}
