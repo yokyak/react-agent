@@ -7,7 +7,6 @@ module.exports = (server, actions, database, logger = false) => {
   const chalk = require('chalk');
   let sequelize;
   let offlineCache = {};
-  let socket;
 
   if (database) {
     const Sequelize = require('sequelize');
@@ -110,7 +109,6 @@ module.exports = (server, actions, database, logger = false) => {
   };
 
   io.on('connection', (socket) => {
-    socket = socket;
 
     socket.on('subscribe', ({ key }) => {
       if (subscribedSockets[key]) {
