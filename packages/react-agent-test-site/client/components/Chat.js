@@ -19,7 +19,7 @@ class Chat extends Component {
       .catch(error => { alert(error) });
     on('getMessages', data => set('messages', data.messages));
     const { first, second, third } = get('first', 'second', 'third');
-    run(['getUsers', 'getIds']).then(data => console.log('TWO RUNS: ', data));
+    run(['getUsers', 'getIds'], { cookie: '987' }).then(data => console.log('TWO RUNS: ', data));
   }
 
   componentDidUpdate() { this.scrollToBottom() }

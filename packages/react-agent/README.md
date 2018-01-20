@@ -7,7 +7,7 @@ React Agent is easy to learn.
 Here's the basic idea: the client runs 'actions' that are defined on the server-side.
 
 ```javascript
-run('addUser', {user: 'Billy'})
+run('addUser', { user: 'Billy' })
 ```
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they receive live updates.
@@ -39,7 +39,7 @@ npm install react-agent --save
 ## How to use
 First, import React Agent into your highest level React component.
 ```javascript
-import { Agent } from 'react-agent';
+import { Agent } from 'react-agent'
 ```
 
 Then, wrap your main component with `<Agent>` to start React Agent when your app loads.
@@ -49,7 +49,7 @@ render(
  <Agent>
    <App />
  </Agent>
- , document.querySelector('#root'));
+ , document.querySelector('#root'))
  ```
 
 Optionally, you can 1) set an initial state for React Agent with `store={initialStore}`. As we’ll see, the state set with React Agent is accessible from any component. And, 2) log in the console what's happening under the hood by including `logger='true'`.
@@ -59,36 +59,37 @@ const initialStore = {
  first: true,
  second: false,
  third: 'ok'
-};
+}
 
 render(
  <Agent store={initialStore} logger='true'>
    <App />
  </Agent>
- , document.querySelector('#root'));
+ , document.querySelector('#root'))
 ```
 
 Let’s get started on the fun part. Import React Agent into a React component.
 
 ```javascript
-import { get, set, run, emit, on, unsubscribe } from 'react-agent';
+import { get, set, run, emit, on, unsubscribe } from 'react-agent'
 ```
 
 There's six methods that make sense to learn. The first two are `set` and `get`, which manipulate state on the client-side, but don't interact with the server. The last four are `run`, `emit`, `on`, and `unsubscribe`, which are used for exchanging client and server-side state. To start, let’s use `set` to write to the React Agent store and `get` to return the values.
 
 ### `set` and `get`
 
-The `set` method takes a property/value pair as its parameters.
+The `set` method takes a property/value pair as its parameters by comma seperation or as an object. 
 
 ```javascript
 set('username', 'Billy')
-set('id', {id: 25141981})
+set({ username: 'Billy' })
 ```
 
-Multiple property/values pairs can be `set` by including them in consecutive order. Below, we store the equivalent of `{color : 'blue'}` and `{active : true}`.
+Multiple property/values pairs can be `set` by including them in consecutive order. 
 
 ```javascript
 set('age', 28, 'active', true)
+set({ age: 28, active: true })
 ```
 
 The `get` method takes a property and returns the associated value.
@@ -120,12 +121,12 @@ Now, let's examine the four methods that communicate with the server. Since thes
 As its optional second argument, `run` takes an object to pass to the server's action.
 
 ```javascript
-run('addUser', {user: Billy})
+run('addUser', { user: Billy })
 ```
 
 Here, we `run` the action `addUser`, which executes the action `addUser` on the server-side. That's all we need to do to add a user!
 
-After the action is completed on the server, it returns a promise to the client. Then, the client can handle returned data, or catch an error.
+After the action is completed on the server, the promise returned by `run` either resolves or rejects. Then, the client can handle returned data, or catch an error.
 
 ```javascript
 run('getAllUsers')
@@ -133,7 +134,7 @@ run('getAllUsers')
     set('allUsers', data.users)
   })
   .catch(err => {
-    console.log(err);
+    console.log(err)
   })
 ```
 
@@ -145,7 +146,7 @@ In addition to `run`, three other methods interact with the server: `emit`, `on`
 `emit` sends a state update to all clients who have subscribed to a key. Optionally, it takes an object as a second argument to pass to the server.
 
 ```javascript
-emit('updateMessages', {cookieID: 937985713})
+emit('updateMessages', { cookieID: 937985713 })
 ```
 
 `on` subscribes a client to a key. That is, if `emit` is called with the corresponding key, the server pushes state updates to all subscribed clients.
@@ -172,12 +173,12 @@ on('getAllStudents', data => {
 
 // If a user adds Billy as a student, we optimistically update the client's store.
 currentUsers = get('allStudents')
-set('allStudents', [...currentStudents, {name: Billy}])
+set('allStudents', [...currentStudents, { name: Billy }])
 
 // Run the action 'addStudent' to update the server's database.
 // If successful, emit an action to all subscribers of 'getAllStudents.'
 // If error, revert the client's state to former value before optimistic update.
-run('addStudent', {name: Billy})
+run('addStudent', { name: Billy })
   .then(() => {
     emit('getAllStudents')
   })
@@ -191,14 +192,14 @@ run('addStudent', {name: Billy})
 
 ### Time Travel Debugging
 
-React Agent uses Redux under the hood for time travel debugging. To enable this feature, pass `offlinePopUp={true}` to the `<Agent>` wrapper. Then, use Redux DevTools Chrome extension to travel through time.
+React Agent uses Redux under the hood for time travel debugging. To enable this feature, pass `devTools={true}` to the `<Agent>` wrapper. Then, use Redux DevTools Chrome extension to *travel through time*.
 
  ```javascript
-render(
- <Agent offlinePopUp={true}>
-   <App />
- </Agent>
- , document.querySelector('#root'));
+render( 
+  <Agent devTools={true}>
+    <App />
+  </Agent>
+ , document.querySelector('#root'))
  ```
 
 ### `destroy`
@@ -211,15 +212,16 @@ destroy('users', 'comments', 'messages')
 
 ### `getStore`
 
-`getStore` returns an object containing the current state of React Agent's store.
+`getStore` returns an object containing the current state of React Agent's entire store. Alternatively, call `get` with no arguments for the same result. 
 
 ```javascript
 currentState = getStore()
+currentState = get()
 ```
 
 ### `isOfflineCacheEmpty`
 
-`isOfflineCacheEmpty` returns a boolean indicating whether any action sent to the server has not yet sent a response to the client. This method can be useful to determine whether the client has unsaved changes. For example, say the network connection drops, but a user continues interacting with the site because of optimistic rendering. If `isOfflineCacheEmpty` is then called, it would return false.
+`isOfflineCacheEmpty` returns a boolean indicating whether any actions sent to the server have not yet been sent back as a response to the client. This method can be useful to determine whether the client has unsaved changes. For example, say the network connection drops, but a user continues interacting with the site because of optimistic rendering. If `isOfflineCacheEmpty` is then called, it would return false.
 
 ```javascript
 isOfflineCacheEmpty() // returns true or false
@@ -232,16 +234,16 @@ render(
  <Agent offlinePopUp={true}>
    <App />
  </Agent>
- , document.querySelector('#root'));
+ , document.querySelector('#root'))
  ```
 
  ### `run`
 
  `run` also accepts multiple keys as arguments in the form of an array. As its optional second argument, it takes an object which is passed to every action included in the array. In this configuration, `run` returns a promise, which resolves to an object containing the key of each action and its respective response from the server.
 
-```javacript
-run(['addUser', 'addMessage'], {user: 'Billy', message: 'trapped in a simulation.'})
-// returns {addUser: {id: 2956739}, addMessage: {time: 2018-01-19T01:10:47}}
+```javascript
+run(['addUser', 'addMessage'], { user: 'Billy', message: 'trapped in a simulation.' })
+// returns { addUser: { id: 2956739 }, addMessage: { time: 2018-01-19T01:10:47 }}
 ```
 
 ## Contributors

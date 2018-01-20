@@ -18,6 +18,10 @@ module.exports = {
     callback: response => response[0]
   },
   getIds: {
+    pre: request => {
+      if (request.cookie === '987') return request;
+      else return false;
+    },
     action: 'SELECT _id FROM users',
     callback: response => response[0]
   },
