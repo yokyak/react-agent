@@ -7,7 +7,7 @@ React Agent is easy to learn.
 Here's the basic idea: the client runs 'actions' that are defined on the server-side.
 
 ```javascript
-run('addUser', {user: 'Billy'})
+run('addUser', { user: 'Billy' })
 ```
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
@@ -19,10 +19,10 @@ React Agent includes offline-support to render optimistic updates and then synch
 The popular conceptualization of state management stores state in two places: data on the client-side and data on the server-side.
 
 To connect these, front-end and back-end developers usually write a lot of code such as HTTP requests, controllers, and routes. It can get complicated.
-![previous](./docs/imgs/diagram-before.gif)
+![previous](https://github.com/yokyak/react-agent/raw/master/docs/imgs/diagram-before.gif)
 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
-![now](./docs/imgs/diagram-after.gif)
+![now](https://github.com/yokyak/react-agent/raw/master/docs/imgs/diagram-after.gif)
 
 
 ## Getting Started
