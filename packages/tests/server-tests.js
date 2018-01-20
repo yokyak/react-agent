@@ -34,6 +34,7 @@ describe('React Agent Server', () => {
   };
 
   let actions;
+  const  messages = [];
 
   before(() => {
     client.query(`CREATE TABLE classes(
@@ -170,7 +171,12 @@ describe('React Agent Server', () => {
       },
     };
 
-    agent(server, actions, db, true);
+    const loggingFunc = (message) => {
+      console.log(message);
+      messages.push(message);
+    };
+
+    agent(server, actions, db, loggingFunc);
   });
 
 
@@ -218,63 +224,56 @@ describe('React Agent Server', () => {
         })
     })
 
-    it('should run non-SQL functions', (done) => {
+    it('should resolve non-SQL functions', (done) => {
 
       run('getImage', { url: 'https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-after.gif' })
-        .then( data => {
+        .then(data => {
           data.should.equal('success');
           done();
         })
     });
   });
 
-  // describe('set', () => {
-  //   it('should return updated values to subscribed keys', (done) => {
+  describe('callback', () => {
+    it('should execute with response from action', (done) => {
 
-  //     actions = {
-  //       getStudentClasses: {
-  //         action: `SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id`
-  //       }
-  //     };
-  //   });
-  // });
+    });
 
-  // describe('callback', () => {
-  //   it('if action exists, it should execute with response from action', (done) => {
+    it('should send response to client', (done) => {
 
-  //   });
+    });
+  });
 
-  //   it('if action exists, it should send response to client', (done) => {
+  describe('errorMessage', () => {
 
-  //   });
+    it('should send default error to client', (done) => {
+      actions = {
+        addStudent: {
+          action: `INSERT INTO studens VALUES(?, ?)`
+        }
+      };
+    });
 
-  //   it('if action does not exist and working, it should resolve and send back to client', (done) => {
+    it('should overwrite default error message', (done) => {
+      actions = {
+        addStudent: {
+          action: `INSERT INTO studens VALUES(?, ?)`,
+          error: `Student entry error for action 'addStudent'`
+        }
+      };
+    });
+  });
 
-  //   });
+  describe('logger', () => {
 
-  //   it('if action does not exist and error, it should reject and send back to client', (done) => {
+    it('should log key, actionID, client object, pre, and completed', (done) => {
 
-  //   });
-  // });
+    });
 
-  // describe('errorMessage', () => {
+    it('should log errors', (done) => {
 
-  //   it('should send default error to client', (done) => {
-  //     actions = {
-  //       addStudent: {
-  //         action: `INSERT INTO studens VALUES(?, ?)`
-  //       }
-  //     };
-  //   });
+    })
 
-  //   it('should overwrite default error message', (done) => {
-  //     actions = {
-  //       addStudent: {
-  //         action: `INSERT INTO studens VALUES(?, ?)`,
-  //         error: `Student entry error for action 'addStudent'`
-  //       }
-  //     };
-    // });
-  // });
+  });
 });
 
