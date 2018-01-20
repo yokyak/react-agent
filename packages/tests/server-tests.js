@@ -242,21 +242,21 @@ describe('React Agent Server', () => {
 
   describe('pre', () => {
 
-    it('should return error if a function returns false', (done) => {
+    it('should return error if function returns false', (done) => {
       run('getStudentClassesFail', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
     });
 
-    it('should return error if one out of multiple functions returns false', (done) => {
+    it('should return error if one out of multiple pre functions returns false', (done) => {
       run('getStudentsFail', { test: 'test' }).catch((err) => {
         err.should.equal('React Agent: Not all server pre functions passed.');
         done();
       });
     });
 
-    it('should run action if no functions returns false', (done) => {
+    it('should run action pass all pre functions', (done) => {
       run('getStudentByID', { test: 'test' })
           .then((data) => {
             data.should.equal('Tiffany');
