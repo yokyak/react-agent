@@ -135,15 +135,6 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
     });
 
     socket.on('run', (data) => {
-<<<<<<< HEAD
-      let response = {};
-      data.keys.forEach((key, i) => {
-        runAction(key, data.request, data.actionId, data.socketID, (result) => {
-          if (!result.preError && !result.databaseError) console.log(chalk.bold('  Callback: '), 'success');
-          response[result.key] = result;
-          console.log(chalk.bold('  Completed: '), key, data.actionId);
-          if (i === data.keys.length - 1) {
-=======
       let response = {}, finished = 0;
       data.keys.forEach(key => {
         runAction(key, data.request, data.actionId, data.socketID, result => {
@@ -152,7 +143,6 @@ module.exports = (server, actions, database, logger = false, stop = false) => {
           if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Completed: '), key, data.actionId);
           if (logger && typeof logger === 'function' && actions[key].pre) logger('  Completed: ' + key + data.actionId);
           if (finished === data.keys.length) {
->>>>>>> 0167dd868e81a39945da5509d8b47b47b3bdbaad
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }
