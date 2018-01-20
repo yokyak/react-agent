@@ -7,7 +7,7 @@ React Agent is easy to learn.
 Here's the basic idea: the client runs 'actions' that are defined on the server-side.
 
 ```javascript
-run('addUser', {user: 'Billy'})
+run('addUser', { user: 'Billy' })
 ```
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
