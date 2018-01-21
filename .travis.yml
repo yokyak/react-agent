@@ -5,3 +5,4 @@ before_install: cd packages
 cache:
   directories:
     - "node_modules"
+install: travis_wait 15 npm install
