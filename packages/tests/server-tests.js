@@ -31,7 +31,6 @@ describe('React Agent Server', () => {
     port: 5432,
   };
 
-  let actions;
   const messages = [];
 
   before(() => {
@@ -118,7 +117,7 @@ describe('React Agent Server', () => {
 
     const server = app.listen(3003);
 
-    actions = {
+    const actions = {
       getStudentClassesFail: {
         pre: request => false,
         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
