@@ -259,7 +259,7 @@ describe('React Agent Server', () => {
     it('should run action pass all pre functions', (done) => {
       run('getStudentByID', { test: 'test' })
           .then((data) => {
-            data.should.equal('Tifany');
+            data.should.equal('Tiffany');
             done();
           });
     });
