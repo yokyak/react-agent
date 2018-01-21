@@ -1,6 +1,6 @@
 import { render } from 'react-dom';
 import React from '../react-agent/node_modules/react';
-import { Agent, get, set, getStoreComponent, destroy, run, emit, on, unsubscribe, isOfflineCacheEmpty, getStore } from '../react-agent';
+import { Agent, get, set, getStoreComponent, destroy, run, emit, on, unsubscribe, isOfflineCacheEmpty, getStore, getCache } from '../react-agent';
 const agent = require('./../react-agent-server');
 const express = require('express');
 const pg = require('pg');
@@ -135,6 +135,27 @@ describe('React Agent Client', () => {
       },
       action3: {
         action: (resolve, reject) => reject()
+      },
+      getStudents: {
+        action: 'SELECT name FROM students',
+        callback: response => {
+          return response[0].map(x => {
+            return x.name
+          })
+        }
+      },
+      newStudent: {
+        action: (resolve, reject, body) => resolve(body)
+      },
+      cacheFirst: {
+        action: (resolve, reject) => resolve()
+      },
+      cacheSecond: {
+        action: 'SELECT department FROM classes',
+        callback: response => response[0]
+      },
+      cacheThird: {
+        action: (resolve, reject) => resolve()
       }
     }
 
@@ -174,7 +195,7 @@ describe('React Agent Client', () => {
     });
   });
 
-  describe('get method', () => {
+  describe('get method', done => {
     it('should retrieve proper value from the store with the given key', () => {
       get('first').should.equal('firstValue');
       get('second').should.equal('secondValue');
@@ -182,7 +203,8 @@ describe('React Agent Client', () => {
 
     it('should return the entire store if no arguments are provided', () => {
       set({ ninth: 'ninthValue' });
-      get().should.deep.equal(Object.assign(initialStore, { ninth: 'ninthValue' }));
+      const newStore = Object.assign(initialStore, { ninth: 'ninthValue' });
+      get().should.deep.equal(newStore);
       destroy('ninth');
     });
   });
@@ -195,13 +217,13 @@ describe('React Agent Client', () => {
       (get('tenth') === undefined).should.be.true;
     });
     it('should take multiple properties as arguments', () => {
-      set({eleven: 'eleventhValue', twelve: 'twelfthValue'});
+      set({eleven: 'eleventhValue', twelfth: 'twelfthValue'});
       destroy('eleven', 'twelfth');
       (get('eleven') === undefined && get('twelfth') === undefined).should.be.true;
     });
   });
 
-  describe('run method', (done) => {
+  describe('run method', done => {
     it('should run an action on the server side', done => {
       run('runAction')
         .then(data => {
@@ -239,22 +261,55 @@ describe('React Agent Client', () => {
     });
   });
 
-  describe('emit method', (done) => {
-    it('should run an action sent to all subscribers');
-    it('should accept an object as a second argument');
+  describe('emit method', done => {
+    it('should run an action sent to all subscribers', done => {
+      on('getStudents', data => {
+        data.should.deep.equal([ 'Tom', 'Henry', 'Tiffany', 'Andrew', 'Eric', 'Althea', 'Monica', 'Mike', 'Peter', 'Justin', 'Jaimie', 'Annie', 'Dale', 'Erik' ]);
+        done();
+      });
+      emit('getStudents');
+    });
+
+    it('should accept an object as a second argument', done => {
+      on('newStudent', data => {
+        data.student.should.equal('Hal');
+        done();
+      });
+      emit('newStudent', { student: 'Hal' });
+    });
   });
 
-  describe('on method', (done) => {
+  describe('on method', done => {
     it('should subscribe a client to an action so that they receive push updates');
     it('should execute its callback upon emitted actions');
   });
 
-  describe('getStore method', (done) => {
-    it('should return the entire store');
+  describe('getStore method', () => {
+    it('should return the entire store', () => {
+      getStore().should.deep.equal( { first: 'firstValue', second: 'secondValue' });
+    });
   });
 
-  describe('isOfflineCacheEmpty', (done) => {
-    it('should return return true if cache is empty');
-    it('should return return false if cache is not empty');
+  describe('unsubscribe method', done => {
+    it('should unsubscribe a client from an action');
+  })
+
+  describe('isOfflineCacheEmpty', done => {
+    it('should return true if cache is empty', done => {
+      run('cacheFirst');
+      on('cacheSecond', data => {
+        unsubscribe('cacheSecond')
+      })
+      emit('cacheSecond');
+      setTimeout(() => {
+        isOfflineCacheEmpty().should.be.true;
+        done();
+      }, 100)
+    });
+
+    it('should return false if cache is not empty', () => {
+      run('cacheThird')
+      isOfflineCacheEmpty().should.be.false;
+    });
   });
 });
