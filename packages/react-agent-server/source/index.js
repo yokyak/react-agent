@@ -84,7 +84,6 @@ module.exports = (server, actions, database, logger = false) => {
           .catch((error) => {
             if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
             if (logger && typeof logger === 'function') logger('  Error with database: ' + error);
-            if (request) logger('  Error with database: ' + error);
             if (actions[key].errorMessage) {
               callback({ key, databaseError: actions[key].errorMessage, actionId });
             } else {

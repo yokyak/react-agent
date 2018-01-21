@@ -189,16 +189,11 @@ describe('React Agent Client', () => {
 
   describe('destroy method', () => {
 
-    it('should remove a property and its value from the store', () => {
-      set({ tenth: 'tenthValue' });
-      destroy('tenth');
-      (get('tenth') === undefined).should.be.true;
-    });
-    it('should take multiple properties as arguments', () => {
-      set({eleven: 'eleventhValue', twelve: 'twelfthValue'});
-      destroy('eleven', 'twelfth');
-      (get('eleven') === undefined && get('twelfth') === undefined).should.be.true;
-    });
+    it('should remove a property and its value from the store');
+    set({ tenth: 'tenthValue' });
+    destroy('tenth');
+    (get('tenth') === undefined).should.be.true;
+    it('should take multiple properties as arguments');
   });
 
   describe('run method', (done) => {

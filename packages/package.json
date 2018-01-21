@@ -10,7 +10,7 @@
   "scripts": {
     "postinstall": "cd react-agent && npm install && cd .. && cd react-agent-server && npm install && cd .. && cd react-agent-test-site && npm install && cd ..",
     "test": "npm run client-test; npm run server-test",
-    "client-test": "./node_modules/.bin/mocha --require babel-core/register ./tests/client-tests.js",
+    "client-test": "./node_modules/.bin/mocha --require babel-core/register ./tests/client-tests.js --exit",
     "server-test": "./node_modules/.bin/mocha --require babel-core/register ./tests/server-tests.js --exit"
   },
   "repository": {
