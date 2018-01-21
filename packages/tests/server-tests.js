@@ -12,8 +12,6 @@ const chai = require('chai');
 const jsdom = require('jsdom');
 const fetch = require('request');
 
-/*eslint-disable*/
-
 const { JSDOM } = jsdom;
 const should = chai.should();
 const app = express();
@@ -142,10 +140,10 @@ describe('React Agent Server', () => {
             return false;
           },
           (request) => {
-            if (request.test === 'test') return request;
+            if (request.id === 3) return request;
             return false;
           }],
-        action: `SELECT name FROM students WHERE id = 3`,
+        action: `SELECT name FROM students WHERE id = $id`,
         callback: response => {
           return response[0][0].name;
         }
@@ -256,12 +254,13 @@ describe('React Agent Server', () => {
       });
     });
 
-    it('should run action pass all pre functions', (done) => {
-      run('getStudentByID', { test: 'test' })
-          .then((data) => {
+    it('should pass the request object to the action if all pre functions pass', (done) => {
+      run('getStudentByID', { id: 3 })
+          .then(data => {
             data.should.equal('Tiffany');
             done();
-          });
+          })
+          .catch(err => console.log('Error getStudentByID:', err));
     });
 
   });
