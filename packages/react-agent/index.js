@@ -266,6 +266,6 @@ const setupSocket = () => {
   });
 
   socket.on('emitResponse', data => {
-    if(cache[data.actionId]) delete cache[data.actionId];
+    delete cache[data.actionId];
   });
 }
