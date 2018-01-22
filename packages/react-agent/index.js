@@ -257,6 +257,7 @@ const setupSocket = () => {
       });
       response = data;
     }
+    console.log('HERE');
     if (cache[actionId]) {
       if (data.preError) cache[actionId].reject(data.preError);
       else if (data.databaseError) cache[actionId].reject(data.databaseError);

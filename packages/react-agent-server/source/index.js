@@ -147,8 +147,8 @@ module.exports = (server, actions, database, logger = false) => {
         runAction(key, data.request, data.actionId, data.socketID, result => {
           finished++;
           response[result.key] = result;
-          if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Completed: '), key, data.actionId);
-          if (logger && typeof logger === 'function' && actions[key].pre) logger('  Completed: ' + key + data.actionId);
+          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key, data.actionId);
+          if (logger && typeof logger === 'function') logger('  Completed: ' + key + data.actionId);
           if (finished === data.keys.length) {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
