@@ -109,7 +109,8 @@ module.exports = (server, actions, database, logger = false) => {
 
   io.on('connection', (socket) => {
 
-    socket.on('subscribe', ({ key }) => {
+    socket.on('subscribe', ({ key, actionId }) => {
+      socket.emit('emitOnUnsubscribeResponse', { actionId });
       if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
           subscribedSockets[key].push(socket);
@@ -117,7 +118,8 @@ module.exports = (server, actions, database, logger = false) => {
       } else subscribedSockets[key] = [socket];
     });
 
-    socket.on('unsubscribe', ({ key }) => {
+    socket.on('unsubscribe', ({ key, actionId }) => {
+      socket.emit('emitOnUnsubscribeResponse', { actionId });
       if (subscribedSockets[key] && subscribedSockets[key].includes(socket)) {
         const i = subscribedSockets[key].indexOf(socket);
         if (i > -1) {
@@ -131,7 +133,7 @@ module.exports = (server, actions, database, logger = false) => {
     socket.on('emit', (data) => {
       if (subscribedSockets[data.key]) {
         runAction(data.key, data.request, data.actionId, data.socketID, (result) => {
-          socket.emit('emitResponse', { actionId: data.actionId });
+          socket.emit('emitOnUnsubscribeResponse', { actionId: data.actionId });
           subscribedSockets[data.key].forEach((subSocket) => {
             subSocket.emit('subscriber', result);
           });
