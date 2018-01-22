@@ -12,8 +12,6 @@ const chai = require('chai');
 const jsdom = require('jsdom');
 const fetch = require('request');
 
-/*eslint-disable*/
-
 const { JSDOM } = jsdom;
 const should = chai.should();
 const app = express();
@@ -33,7 +31,6 @@ describe('React Agent Server', () => {
     port: 5432,
   };
 
-  let actions;
   const messages = [];
 
   before(() => {
@@ -120,7 +117,7 @@ describe('React Agent Server', () => {
 
     const server = app.listen(3003);
 
-    actions = {
+    const actions = {
       getStudentClassesFail: {
         pre: request => false,
         action: 'SELECT s.name, c.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id',
@@ -142,10 +139,10 @@ describe('React Agent Server', () => {
             return false;
           },
           (request) => {
-            if (request.test === 'test') return request;
+            if (request.id === 3) return request;
             return false;
           }],
-        action: `SELECT name FROM students WHERE id = 3`,
+        action: `SELECT name FROM students WHERE id = $id`,
         callback: response => {
           return response[0][0].name;
         }
@@ -256,12 +253,13 @@ describe('React Agent Server', () => {
       });
     });
 
-    it('should run action pass all pre functions', (done) => {
-      run('getStudentByID', { test: 'test' })
-          .then((data) => {
+    it('should pass the request object to the action if all pre functions pass', (done) => {
+      run('getStudentByID', { id: 3 })
+          .then(data => {
             data.should.equal('Tiffany');
             done();
-          });
+          })
+          .catch(err => console.log('Error getStudentByID:', err));
     });
 
   });
@@ -358,7 +356,7 @@ describe('React Agent Server', () => {
     it('should log errors with the database', (done) => {
       run('databaseError', {test: 'test'})
       .catch(data => {
-        messages[messages.length - 2].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
+        messages[messages.length - 1].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
         done();
       })
     })
