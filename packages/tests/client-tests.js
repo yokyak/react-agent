@@ -5,7 +5,7 @@ const agent = require('./../react-agent-server');
 const express = require('express');
 const pg = require('pg');
 const app = express();
-/*eslint-disable*/
+
 const chai = require('chai');
 const jsdom = require('jsdom');
 
