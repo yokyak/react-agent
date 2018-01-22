@@ -158,12 +158,20 @@ describe('React Agent Client', () => {
       cacheThird: {
         action: (resolve, reject) => resolve(),
       },
+      getClasses: {
+        action: 'SELECT name FROM classes',
+        callback: response => {
+          return response[0].map(x => {
+            return x.name
+          })
+        }
+      },
       action4: {
         action: (resolve, reject) => resolve()
       }
     }
 
-    agent(server, actions, db, true); // pass true as fourth argument to log server-side
+    agent(server, actions, db); // pass true as fourth argument to log server-side
   })
 
   after(() => {
@@ -285,8 +293,15 @@ describe('React Agent Client', () => {
   });
 
   describe('on method', done => {
-    it('should subscribe a client to an action so that they receive push updates');
-    it('should execute its callback upon emitted actions');
+    it('should subscribe a client to an action so that they receive push updates & should execute its callback upon emitted actions', () => {
+      on('getClasses', (data) => {
+        set('classes', data);
+      })
+      emit('getClasses')
+      setTimeout(() => {
+        get('classes').should.deep.equal([ 'Intro to Sociology', 'Examining Gender in the 21st C.', 'Algorithms', 'Contemporary Art', 'Formal Language and State Automata', 'Social Theory', 'Graph Theory', 'Jewish, Christian, and Islamic Investigations', 'Property Law', 'Intro to Algebra', 'Intellectual Property Law', 'Privacy and Hacking', 'Advanced Terrorism' ])
+      }, 100)
+    });
   });
 
   describe('getStore method', () => {
@@ -305,25 +320,22 @@ describe('React Agent Client', () => {
       emit('action4');
       setTimeout(() => {
         get('unsubscribe').should.be.true;
-        console.log('ONE', getCache());
         done();
       }, 100)
     });
   })
 
-  // not working -- perhaps Emit isn’t returning a response if action is a promise
   describe('isOfflineCacheEmpty', done => {
     it('should return true if cache is empty', done => {
-      // run('cacheFirst');
-      // on('cacheSecond', data => {
-      //   unsubscribe('cacheSecond')
-      // })
-      // emit('cacheSecond');
-      // setTimeout(() => {
-      //   console.log('TWO', getCache())
-      //   isOfflineCacheEmpty().should.be.true;
+      run('cacheFirst');
+      on('cacheSecond', data => {
+        unsubscribe('cacheSecond')
+      })
+      emit('cacheSecond');
+      setTimeout(() => {
+        isOfflineCacheEmpty().should.be.true;
         done();
-      // }, 100)
+      }, 100)
     });
 
     it('should return false if cache is not empty', () => {

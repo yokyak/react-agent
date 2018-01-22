@@ -260,8 +260,12 @@ const setupSocket = () => {
       delete cache[actionId];
     }
   });
+
   socket.on('subscriber', data => {
     subscriptions[data.key].func(data.response);
-    delete cache[data.actionId];
+  });
+
+  socket.on('emitResponse', data => {
+    if(cache[data.actionId]) delete cache[data.actionId];
   });
 }
