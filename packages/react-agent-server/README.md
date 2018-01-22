@@ -66,11 +66,11 @@ const database = {
 
 agent(server, actions, database)
 ```
-With this setup, whenever `run('getMessages')` is called from the client-side (via React Agent), the corresponding SQL query ("SELECT * FROM posts") under the `action` property for `getMessages` will be ran.
+With this setup, whenever `run('getMessages')` is called from the client-side (via React Agent), the corresponding SQL query ("SELECT * FROM posts") under the `action` property for `getMessages` will be ran. The results of this SQL query will be returned to the client.
 
 It is possible to log what React Agent is doing by passing `true` as the fourth argument for `agent`. This feature can be helpful for debugging.
 
-A callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
+As a best practice, a callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 
 ```javascript
 const actions = {
@@ -123,7 +123,7 @@ run('login', { user: 'Bob', password: 'superstrongpassword' })
 
 Then the appropriate values with those property names will be injected into the SQL string. React Agent uses Sequelize under the hood, which handles input sanitization protecting against many different types of SQL injection attacks.
 
-Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed both a `resolve` and `reject` argument (from a `new Promise` within the library), along with the request object passed in from the client-side `run` call. The use of a promise makes dealing with asynchronous code in the action easy.
+Arbitrary functions can also be ran instead of using a SQL query string. The function will be passed both a `resolve` and `reject` argument (from a `new Promise` within the library), along with the request object passed in from the client-side `run` call. The use of a promise makes dealing with asynchronous code in the action easy. (If a function is ran, the action does not take a callback.)
 
 ```javascript
 const actions = {
