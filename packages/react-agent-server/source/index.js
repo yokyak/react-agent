@@ -50,7 +50,7 @@ module.exports = (server, actions, database, logger = false) => {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = error{ [actionId]: 0 };
       if (logger && typeof logger !== 'function') {
-        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold('  From client: '), request);
+        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
         else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
       }
       if (logger && typeof logger === 'function') {
@@ -120,7 +120,8 @@ module.exports = (server, actions, database, logger = false) => {
 
   io.on('connection', (socket) => {
 
-    socket.on('subscribe', ({ key }) => {
+    socket.on('subscribe', ({ key, actionId }) => {
+      socket.emit('emitOnUnsubscribeResponse', { actionId });
       if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
           subscribedSockets[key].push(socket);
@@ -128,7 +129,8 @@ module.exports = (server, actions, database, logger = false) => {
       } else subscribedSockets[key] = [socket];
     });
 
-    socket.on('unsubscribe', ({ key }) => {
+    socket.on('unsubscribe', ({ key, actionId }) => {
+      socket.emit('emitOnUnsubscribeResponse', { actionId });
       if (subscribedSockets[key] && subscribedSockets[key].includes(socket)) {
         const i = subscribedSockets[key].indexOf(socket);
         if (i > -1) {
@@ -142,7 +144,7 @@ module.exports = (server, actions, database, logger = false) => {
     socket.on('emit', (data) => {
       if (subscribedSockets[data.key]) {
         runAction(data.key, data.request, data.actionId, data.socketID, (result) => {
-          socket.emit('emitResponse', { actionId: data.actionId });
+          socket.emit('emitOnUnsubscribeResponse', { actionId: data.actionId });
           subscribedSockets[data.key].forEach((subSocket) => {
             subSocket.emit('subscriber', result);
           });
@@ -156,8 +158,8 @@ module.exports = (server, actions, database, logger = false) => {
         runAction(key, data.request, data.actionId, data.socketID, result => {
           finished++;
           response[result.key] = result;
-          if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Completed: '), key, data.actionId);
-          if (logger && typeof logger === 'function' && actions[key].pre) logger('  Completed: ' + key + data.actionId);
+          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key, data.actionId);
+          if (logger && typeof logger === 'function') logger('  Completed: ' + key + data.actionId);
           if (finished === data.keys.length) {
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);

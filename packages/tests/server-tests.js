@@ -356,7 +356,7 @@ describe('React Agent Server', () => {
     it('should log errors with the database', (done) => {
       run('databaseError', {test: 'test'})
       .catch(data => {
-        messages[messages.length - 1].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
+        messages[messages.length - 2].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
         done();
       })
     })
@@ -364,7 +364,7 @@ describe('React Agent Server', () => {
     it('should log rejections with the action function', (done) => {
       run('actionFunctionError', {test: 'test'})
       .catch(data => {
-        messages[messages.length - 1].should.equal('  Action function: rejected')
+        messages[messages.length - 2].should.equal('  Action function: rejected')
         done();
       })
     })

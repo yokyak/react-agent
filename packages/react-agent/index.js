@@ -149,7 +149,7 @@ export const run = (keys, request) => {
   };
   socket.emit('run', { keys, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { keys, request, actionId, resolve, reject, socketID: socket.id };
+    cache[actionId] = { method: 'query', keys, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -157,7 +157,9 @@ export const on = (key, func) => {
   if (!server) setupSocket();
   if (logger && typeof logger !== 'function') console.log('On: ', key);
   if (logger && typeof logger === 'function') logger('On: ' + key);
-  socket.emit('subscribe', { key });
+  const actionId = uuidv4();
+  cache[actionId] = { method: 'subscribe', key, actionId }
+  socket.emit('subscribe', { key, actionId });
   subscriptions[key] = { func };
 };
 
@@ -165,7 +167,9 @@ export const unsubscribe = (key) => {
   if (!server) setupSocket();
   if (logger && typeof logger !== 'function') console.log('Unsubscribe: ', key);
   if (logger && typeof logger === 'function') logger('Unsubscribe: ' + key);
-  socket.emit('unsubscribe', { key });
+  const actionId = uuidv4();
+  cache[actionId] = { method: 'unsubscribe', key, actionId };
+  socket.emit('unsubscribe', { key, actionId });
   delete subscriptions[key];
 };
 
@@ -182,7 +186,7 @@ export const emit = (key, request) => {
   };
   socket.emit('emit', { key, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
-    cache[actionId] = { key, request, actionId, resolve, reject, socketID: socket.id };
+    cache[actionId] = { method: 'query', key, request, actionId, resolve, reject, socketID: socket.id };
   });
 };
 
@@ -231,8 +235,9 @@ const setupSocket = () => {
   else socket = io.connect();
 
   socket.on('connect', () => {
-    Object.values(cache).forEach(({ key, request, actionId, socketID }) => {
-      socket.emit('query', { key, request, actionId, socketID });
+    Object.values(cache).forEach(x => {
+      if (x.method === 'query') socket.emit(x.method, { key : x.key, request: x.request, actionId: x.actionId, socketID: x.socketID });
+      if (x.method === 'subscribe' || x.method === 'unsubscribe') socket.emit(x.method, { key : x.key, actionId: x.actionId });
     });
   });
   socket.on('response', data => {
@@ -267,7 +272,7 @@ const setupSocket = () => {
     subscriptions[data.key].func(data.response);
   });
 
-  socket.on('emitResponse', data => {
+  socket.on('emitOnUnsubscribeResponse', data => {
     delete cache[data.actionId];
   });
 }
