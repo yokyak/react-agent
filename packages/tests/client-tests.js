@@ -137,6 +137,13 @@ describe('React Agent Client', () => {
       action3: {
         action: (resolve, reject) => reject()
       },
+      databaseErrorAction: {
+        action: 'SELECT * from history',
+      },
+      preErrorAction: {
+        pre: obj => false,
+        action: 'SELECT * from students',
+      },
       getStudents: {
         action: 'SELECT name FROM students',
         callback: response => {
@@ -168,7 +175,7 @@ describe('React Agent Client', () => {
       },
       action4: {
         action: (resolve, reject) => resolve()
-      }
+      },
     }
 
     agent(server, actions, db); // pass true as fourth argument to log server-side
@@ -272,6 +279,30 @@ describe('React Agent Client', () => {
           done();
         });
     });
+
+    it('should return an error if no action by that same name exists on the server', (done) => {
+      run('nonNamedAction')
+        .catch(err => {
+          err.should.equal('React Agent: Key not found in actions');
+          done()
+        })
+    })
+
+    it('should return an error if there is a database error on the server', (done) => {
+      run('databaseErrorAction')
+        .catch(err => {
+          err.should.equal('Error with database');
+          done()
+        })
+    })
+
+    it('should return an error if not all pre functions pass on the server', (done) => {
+      run('preErrorAction', {test: 'test'})
+        .catch(err => {
+          err.should.equal('React Agent: Not all server pre functions passed.');
+          done()
+        })
+    })
   });
 
   describe('emit method', done => {
