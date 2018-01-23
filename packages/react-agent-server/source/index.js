@@ -35,6 +35,17 @@ module.exports = (server, actions, database, logger = false) => {
   }, 3000);
 
   const runAction = (key, request, actionId, socketID, callback) => {
+    // if key in actions does not exist return error
+    if (!actions[key]) {
+      if (logger && typeof logger !== 'function') {
+        console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), 'not found');
+      }
+      if (logger && typeof logger === 'function') {
+        console.log('Key: ' + key + ' not found');
+      }
+      return callback({ key, keyError: 'React Agent: Key not found in actions', actionId });
+    }
+
     if (!offlineCache[socketID] || !offlineCache[socketID][actionId]) {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = { [actionId]: 0 };
