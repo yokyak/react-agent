@@ -1,5 +1,7 @@
 # React Agent
 
+[![Build Status](https://travis-ci.org/yokyak/react-agent.svg?branch=master)](https://travis-ci.org/yokyak/react-agent)
+
 React Agent synchronizes client-side and server-side state.  It can be included in any React project without conflict with other state management tools or REST APIs.
 
 React Agent is easy to learn.
