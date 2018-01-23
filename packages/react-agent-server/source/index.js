@@ -43,7 +43,7 @@ module.exports = (server, actions, database, logger = false) => {
       if (logger && typeof logger === 'function') {
         console.log('Key: ' + key + ' not found');
       }
-      return callback({ key, keyError: 'React Agent: Key not found in actions' });
+      return callback({ key, keyError: 'React Agent: Key not found in actions', actionId });
     }
 
     if (!offlineCache[socketID] || !offlineCache[socketID][actionId]) {
