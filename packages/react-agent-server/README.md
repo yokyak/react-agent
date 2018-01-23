@@ -1,5 +1,9 @@
 # React Agent Server
 
+[![License](https://img.shields.io/github/license/yokyak/react-agent.svg)](https://github.com/yokyak/react-agent/blob/master/LICENSE.txt)
+[![React Agent Server](https://img.shields.io/npm/v/react-agent-server.svg)](https://www.npmjs.com/package/react-agent-server)
+[![Build Status](https://travis-ci.org/yokyak/react-agent.svg?branch=master)](https://travis-ci.org/yokyak/react-agent)
+
 React Agent synchronizes client-side and server-side state.  It can be included in any React project without conflict with other state management tools or REST APIs.
 
 React Agent is easy to learn.
