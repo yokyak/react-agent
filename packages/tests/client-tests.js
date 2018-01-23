@@ -137,6 +137,13 @@ describe('React Agent Client', () => {
       action3: {
         action: (resolve, reject) => reject()
       },
+      databaseErrorAction: {
+        action: 'SELECT * from history',
+      },
+      preErrorAction: {
+        pre: obj => false,
+        action: 'SELECT * from students',
+      },
       getStudents: {
         action: 'SELECT name FROM students',
         callback: response => {
@@ -169,13 +176,6 @@ describe('React Agent Client', () => {
       action4: {
         action: (resolve, reject) => resolve()
       },
-      databaseErrorAction: {
-        action: 'SELECT * from history',
-      },
-      preErrorAction: {
-        pre: obj => false,
-        action: 'SELECT * from students',
-      }
     }
 
     agent(server, actions, db); // pass true as fourth argument to log server-side
