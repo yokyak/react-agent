@@ -48,7 +48,7 @@ module.exports = (server, actions, database, logger = false) => {
 
     if (!offlineCache[socketID] || !offlineCache[socketID][actionId]) {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
-      else offlineCache[socketID] = error{ [actionId]: 0 };
+      else offlineCache[socketID] = { [actionId]: 0 };
       if (logger && typeof logger !== 'function') {
         if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
         else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
