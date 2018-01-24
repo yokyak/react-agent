@@ -56,7 +56,7 @@ render(
  , document.querySelector('#root'))
  ```
 
-Optionally, you can 1) set an initial state for React Agent with `store={initialStore}`. As we’ll see, the state set with React Agent is accessible from any component. And, 2) log in the console what's happening under the hood by including `logger='true'`.
+Optionally, you can 1) set an initial state for React Agent with `store={ initialStore }`. As we’ll see, the state set with React Agent is accessible from any component. And, 2) log in the console what's happening under the hood by including `logger=true`.
 
 ```javascript
 const initialStore = {
@@ -66,7 +66,7 @@ const initialStore = {
 }
 
 render(
- <Agent store={initialStore} logger='true'>
+ <Agent store={ initialStore } logger=true>
    <App />
  </Agent>
  , document.querySelector('#root'))
@@ -106,9 +106,9 @@ It is also possible to manipulate client-side state in a more complex way using 
 
 ```javascript
 allUsers = get('allUsers')
-set('allUsers', [...allUsers, {user: Billy}])
+set('allUsers', [...allUsers, { user: Billy }])
 ```
-First, we use `get` to assign the current value of `allUsers` to a variable. Then, we take advantage of the ES6 spread operator `...` to easily add `{user: Billy}` to `allUsers`.
+First, we use `get` to assign the current value of `allUsers` to a variable. Then, we take advantage of the ES6 spread operator `...` to easily add `{ user: Billy }` to `allUsers`.
 
 Since React Agent’s methods can be imported into any component, React Agent's store is now accessible from any component without ‘passing-down’ props. Under the hood, React Agent uses React’s virtual DOM for efficient rendering.
 
