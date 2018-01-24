@@ -118,7 +118,7 @@ describe('React Agent Client', () => {
         callback: response => response[0][0].major,
       },
       runActionObject: {
-        action: 'SELECT name from classes WHERE id = $id',
+        action: 'SELECT name from classes WHERE id = :id',
         callback: response => response[0][0].name,
       },
       runActionResolve: {
@@ -126,7 +126,7 @@ describe('React Agent Client', () => {
         callback: response => response[0][0].classyr,
       },
       runActionReject: {
-        action: 'SELECT class from classes WHERE id = $id',
+        action: 'SELECT class from classes WHERE id = :id',
       },
       action1: {
         action: (resolve, reject) => resolve('firstAction')

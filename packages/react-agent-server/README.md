@@ -88,7 +88,7 @@ const actions = {
 }
 ```
 
-In the event of a database error, a custom error message can be sent back to the client. This error message is passed into the client promise rejection so it will appear in a `catch` block. The default error message is 'Error with database'.
+In the event of a database error, a custom error message can be sent back to the client. This error message is passed into the client promise rejection so it will appear in a `catch` block. If an error message is not included, React Agent uses its default error messages. 
 
 ```javascript
 const actions = {
