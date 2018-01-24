@@ -262,13 +262,14 @@ const setupSocket = () => {
 // Consolidate the various logger messages into a single function
 const logHelper = (msg, ...etc) => {
   if (msg === 'run') {
+    let request;
+    etc[0] ? request = etc[1] : request = "none";
     if (typeof logger !== 'function') {
-      if(!request) request = "none";
-      console.log('Run: ', etc[0], '\nRequest: ', etc[1], '\nID: ', etc[2]);
+      console.log('Run: ', etc[0], '\nRequest: ', request, '\nID: ', etc[2]);
     };
     if (typeof logger === 'function') {
       if(!request) request = "none";
-      logger('Run: ' + etc[0] + 'Request: ' + etc[1] + 'ID: ' + etc[2]);
+      logger('Run: ' + etc[0] + 'Request: ' + request + 'ID: ' + etc[2]);
     };
   }
   if (msg === 'on') {
@@ -280,13 +281,13 @@ const logHelper = (msg, ...etc) => {
     if (typeof logger === 'function') logger('Unsubscribe: ' + etc[0]);
   }
   if (msg === 'emit') {
+    let request;
+    !etc[1] ? request = "none" : request = etc[1];
     if (logger && typeof logger !== 'function') {
-      if(!request) request = "none";
-      console.log('Emit: ', etc[0], '\nRequest: ', etc[1], '\nID: ', etc[2]);
+      console.log('Emit: ', etc[0], '\nRequest: ', request, '\nID: ', etc[2]);
     };
     if (logger && typeof logger === 'function') {
-      if(!request) request = "none";
-      logger('Emit: ' + etc[0] + 'Request: ' + etc[1] + 'ID: ' + etc[2]);
+      logger('Emit: ' + etc[0] + 'Request: ' + request + 'ID: ' + etc[2]);
     };
   }
   if (msg === 'setSingle') {
