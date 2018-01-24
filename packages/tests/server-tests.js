@@ -142,13 +142,13 @@ describe('React Agent Server', () => {
             if (request.id === 3) return request;
             return false;
           }],
-        action: `SELECT name FROM students WHERE id = $id`,
+        action: `SELECT name FROM students WHERE id = :id`,
         callback: response => {
           return response[0][0].name;
         }
       },
       getStudentsInTwoClasses: {
-        action: 'SELECT s.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id WHERE c.name = $class1 OR c.name = $class2',
+        action: 'SELECT s.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id WHERE c.name = :class1 OR c.name = :class2',
         callback: response => {
           const names = {names: []};
           response[0].forEach(x => {
