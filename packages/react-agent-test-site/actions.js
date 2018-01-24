@@ -2,7 +2,7 @@ const fetch = require('request');
 
 module.exports = {
   postMessage: {
-    action: 'INSERT INTO posts (chatmessage, user_id) VALUES ($message, $id)'
+    action: 'INSERT INTO posts (chatmessage, user_id) VALUES (:message, :id)'
   },
   getMessages: {
     action: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
@@ -26,7 +26,7 @@ module.exports = {
     callback: response => response[0]
   },
   register: {
-    action: 'INSERT INTO users (username, password) VALUES ($username, $password); SELECT username, _id FROM users WHERE username = $username AND password = $password',
+    action: 'INSERT INTO users (username, password) VALUES (:username, :password); SELECT username, _id FROM users WHERE username = :username AND password = :password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'yikes'
   },
@@ -42,7 +42,7 @@ module.exports = {
       },
       // request => false,
     ],
-    action: 'SELECT username, _id FROM users WHERE username = $username AND password = $password',
+    action: 'SELECT username, _id FROM users WHERE username = :username AND password = :password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no'
   },

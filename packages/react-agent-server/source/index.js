@@ -123,7 +123,7 @@ module.exports = (server, actions, database, logger = false) => {
       if (logger) logHelper('passAll');
 
       if (typeof actions[key].action !== 'function') {
-        sequelize.query(actions[key].action, { bind: request })
+        sequelize.query(actions[key].action, { replacements: request })
           .then((response) => {
             if (actions[key].callback) {
               callback({ key, response: actions[key].callback(response), actionId });
