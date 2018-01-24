@@ -1,3 +1,5 @@
+import { log } from 'util';
+
 require('babel-polyfill');
 
 module.exports = (server, actions, database, logger = false) => {
@@ -35,36 +37,75 @@ module.exports = (server, actions, database, logger = false) => {
   }, 3000);
 
   const runAction = (key, request, actionId, socketID, callback) => {
-    // if key in actions does not exist return error
-    if (!actions[key]) {
-      if (logger && typeof logger !== 'function') {
+    // Takes in msg and the logger parameter to console log the associated error if not false
+    // or call the logger function on the error text if logger is a function.
+    const logHelper = (msg, etc) => {
+      // For checking if action does not exist in actions object
+      if (msg === 'actionKey' && typeof logger !== 'function') {
         console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), 'not found');
       }
-      if (logger && typeof logger === 'function') {
-        console.log('Key: ' + key + ' not found');
+      if (msg === 'actionKey' && typeof logger === 'function') {
+        logger('Key: ' + key + ' not found');
       }
+      // After checking socketId and actionId in offline cache
+      if (msg === 'keyId' && typeof logger !== 'function') {
+        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
+        else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
+      }
+      if (msg === 'keyId' && typeof logger === 'function') {
+        if (request) logger('Key: ' + key + 'ID:' + actionId);
+        if (request) logger('  From client: ' + JSON.stringify(request));
+        else logger('Key: ' + key + 'ID:' + actionId);
+      }
+      // Not all pre functions passed
+      if (msg === 'preErrorMulti') {
+        if (typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${etc + 1}`));
+        if (typeof logger === 'function') logger(`  Pre-error: did not pass function #${etc + 1}`);
+      }
+      // PreError without looping with i
+      if (msg === 'preErrorSingle') {
+        if (typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass pre function`));
+        if (typeof logger === 'function') logger(`  Pre-error: did not pass pre function`);
+      }
+      // All pre functions evaluated to true
+      if (msg === 'passAll') {
+        if (typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
+        if (typeof logger === 'function' && actions[key].pre) logger('  Pre: ' + 'Passed all function(s)');
+      }
+      // Database Error
+      if (msg === 'databaseError') {
+        if (typeof logger !== 'function') console.log(chalk.bold.red('  Error with database: '), chalk.yellow(etc));
+        if (typeof logger === 'function') logger('  Error with database: ' + etc);
+      }
+      // Log if promise related to action resolves
+      if (msg === 'actionResolve') {
+        if (typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
+        if (typeof logger === 'function') logger('  Action function: resolved');  
+      }
+      // Log if promise related to action rejected
+      if (msg === 'actionReject') {
+        if (typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
+        if (typeof logger === 'function') logger('  Action function: rejected');
+      }
+    };
+
+    // if key in actions does not exist return error
+    if (!actions[key]) {
+      if (logger) logHelper('actionKey');
       return callback({ key, keyError: 'React Agent: Key not found in actions', actionId });
     }
 
     if (!offlineCache[socketID] || !offlineCache[socketID][actionId]) {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = { [actionId]: 0 };
-      if (logger && typeof logger !== 'function') {
-        if (request) console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.green('\nID:'), chalk.blue(actionId), '\n', chalk.bold(' From client: '), request);
-        else console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), chalk.bold.blue('\nID:'), chalk.blue(actionId));
-      }
-      if (logger && typeof logger === 'function') {
-        if (request) logger('Key: ' + key + 'ID:' + actionId);
-        if (request) logger('  From client: ' + JSON.stringify(request));
-        else logger('Key: ' + key + 'ID:' + actionId);
-      }
+      if (logger) logHelper('keyId');
+     
       if (actions[key].pre) {
         if (Array.isArray(actions[key].pre)) {
           for (let i = 0; i < actions[key].pre.length; i++) {
             const returned = actions[key].pre[i](request);
             if (returned === false) {
-              if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass function #${i + 1}`));
-              if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass function #${i + 1}`);
+              if (logger) logHelper('preErrorMulti', i);
               return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
             }
             request = returned;
@@ -72,16 +113,14 @@ module.exports = (server, actions, database, logger = false) => {
         } else {
           const returned = actions[key].pre(request);
           if (returned === false) {
-            if (logger && typeof logger !== 'function') console.log(chalk.bold.red(`  Pre-error: did not pass pre function`));
-            if (logger && typeof logger === 'function') logger(`  Pre-error: did not pass pre function`);
+            if (logger) logHelper('preErrorSingle');
             return callback({ key, preError: 'React Agent: Not all server pre functions passed.', actionId });
           }
           request = returned;
         }
       }
 
-      if (logger && typeof logger !== 'function' && actions[key].pre) console.log(chalk.bold('  Pre: '), 'Passed all function(s)');
-      if (logger && typeof logger === 'function' && actions[key].pre) logger('  Pre: ' + 'Passed all function(s)');
+      if (logger) logHelper('passAll');
 
       if (typeof actions[key].action !== 'function') {
         sequelize.query(actions[key].action, { replacements: request })
@@ -93,8 +132,7 @@ module.exports = (server, actions, database, logger = false) => {
             }
           })
           .catch((error) => {
-            if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Error with database: '), chalk.yellow(error));
-            if (logger && typeof logger === 'function') logger('  Error with database: ' + error);
+            if (logger) logHelper('databaseError', error); 
             if (actions[key].errorMessage) {
               callback({ key, databaseError: actions[key].errorMessage, actionId });
             } else {
@@ -106,16 +144,14 @@ module.exports = (server, actions, database, logger = false) => {
           actions[key].action(resolve, reject, request);
         });
         promise.then((response) => {
-          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
-          if (logger && typeof logger === 'function') logger('  Action function: resolved');
+          if (logger) logHelper('actionResolve');
           callback({ key, response, actionId });
         }).catch(error => {
-          if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
-          if (logger && typeof logger === 'function') logger('  Action function: rejected');
+          if (logger) logHelper('actionReject');
           callback({ key, actionError: `The action for ${key} rejected its promise.`, actionId })
         });
       }
-    }
+    } 
   };
 
   io.on('connection', (socket) => {
