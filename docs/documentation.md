@@ -21,7 +21,7 @@
 [errorMessage](#errorMessage)  
 
 <a name="client"></a> 
-# Client-Side (React Agent)
+# Client-Side: React Agent
 
 <a name="Agent"></a>
 ## Agent
@@ -209,7 +209,7 @@ Alternatively, use `get()` for the same result.
 
 ```
 <a name="server"></a> 
-# Server-Side (React Agent Server)
+# Server-Side: React Agent Server
 
 <a name="agent"></a>
 ## agent
@@ -316,7 +316,7 @@ When using `callback`, it can be useful to console log  `response` to parse what
 errorMessage: 'string text'
 ```
 *Value*  
-'string text' - a string.
+`string text` - a string.
 ### Description
 `errorMessage` is an optional property on a key. If an error message is not included, React Agent uses its default error messages. 
 ### Example
