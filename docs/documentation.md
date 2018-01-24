@@ -316,7 +316,7 @@ When using `callback`, it can be useful to console log  `response` to parse what
 errorMessage: 'string text'
 ```
 *Value*  
-'string text' - a string.
+`string text` - a string.
 ### Description
 `errorMessage` is an optional property on a key. If an error message is not included, React Agent uses its default error messages. 
 ### Example
