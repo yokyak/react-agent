@@ -2,9 +2,10 @@
   "name": "react-agent",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./distribution/index.min.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require babel-core/register test.js"
+    "build": "babel source --out-dir distribution; uglifyjs ./distribution/index.js -o ./distribution/index.min.js -c -m",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,8 @@
   },
   "homepage": "https://github.com/yokyak/react-agent#readme",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "react": "^16.2.0",
     "react-redux": "^5.0.6",
     "redux": "^3.7.2",
