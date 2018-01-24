@@ -103,7 +103,7 @@ module.exports = (server, actions, database, logger = false) => {
 
     // Takes in msg and the logger parameter to console log the associated error if not false
     // or call the logger function on the error text if logger is a function.
-    const logHelper = (msg, etc) => {
+    function logHelper(msg, etc) {
       // For checking if action does not exist in actions object
       if (msg === 'actionKey' && typeof logger !== 'function') {
         console.log(chalk.bold.green('Key: '), chalk.bold.blue(key), 'not found');
@@ -143,13 +143,13 @@ module.exports = (server, actions, database, logger = false) => {
       }
       // Log if promise related to action resolves
       if (msg === 'actionResolve') {
-        if (logger && typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
-        if (logger && typeof logger === 'function') logger('  Action function: resolved');  
+        if (typeof logger !== 'function') console.log(chalk.bold('  Action function: '), 'resolved');
+        if (typeof logger === 'function') logger('  Action function: resolved');  
       }
       // Log if promise related to action rejected
       if (msg === 'actionReject') {
-        if (logger && typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
-        if (logger && typeof logger === 'function') logger('  Action function: rejected');
+        if (typeof logger !== 'function') console.log(chalk.bold.red('  Action function: '), 'rejected');
+        if (typeof logger === 'function') logger('  Action function: rejected');
       }
     }; 
   };

@@ -3,6 +3,7 @@ import io from 'socket.io-client';
 import { dispatch, createStore, combineReducers } from 'redux';
 import { Provider, connect } from 'react-redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
+import { log } from 'util';
 const uuidv4 = require('uuid/v4');
 
 const cache = {}, subscriptions = {};
@@ -118,7 +119,7 @@ if (typeof window !== 'undefined') {
 
 export const Agent = (props) => {
   if (props.hasOwnProperty('store')) initialStore = true;
-  if (props.logger && props.logger === true) logger = true;
+  if (props.logger && typeof props.logger !== 'function') logger = true;
   if (props.logger && typeof props.logger === 'function') logger = props.logger;
   if (props.devTools && props.devTools === true) {
     providerStore = createStore(reducers, composeWithDevTools());
@@ -139,14 +140,7 @@ export const run = (keys, request) => {
   if (!Array.isArray(keys)) keys = [keys];
   if (!server) setupSocket();
   const actionId = uuidv4();
-  if (logger && typeof logger !== 'function') {
-    if(!request) request = "none";
-    console.log('Run: ', keys, '\nRequest: ', request, '\nID: ', actionId);
-  };
-  if (logger && typeof logger === 'function') {
-    if(!request) request = "none";
-    logger('Run: ' + keys + 'Request: ' + request + 'ID: ' + actionId);
-  };
+  if (logger) logHelper('run', keys, request, actionId);
   socket.emit('run', { keys, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
     cache[actionId] = { method: 'query', keys, request, actionId, resolve, reject, socketID: socket.id };
@@ -155,8 +149,7 @@ export const run = (keys, request) => {
 
 export const on = (key, func) => {
   if (!server) setupSocket();
-  if (logger && typeof logger !== 'function') console.log('On: ', key);
-  if (logger && typeof logger === 'function') logger('On: ' + key);
+  if (logger) logHelper('on', key);
   const actionId = uuidv4();
   cache[actionId] = { method: 'subscribe', key, actionId }
   socket.emit('subscribe', { key, actionId });
@@ -165,25 +158,17 @@ export const on = (key, func) => {
 
 export const unsubscribe = (key) => {
   if (!server) setupSocket();
-  if (logger && typeof logger !== 'function') console.log('Unsubscribe: ', key);
-  if (logger && typeof logger === 'function') logger('Unsubscribe: ' + key);
+  if (logger) logHelper('unsubscribe', key);
   const actionId = uuidv4();
   cache[actionId] = { method: 'unsubscribe', key, actionId };
   socket.emit('unsubscribe', { key, actionId });
-  delete subscriptions[key];
+  delete subscriptions[key];key
 };
 
 export const emit = (key, request) => {
   if (!server) setupSocket();
   const actionId = uuidv4();
-  if (logger && typeof logger !== 'function') {
-    if(!request) request = "none";
-    console.log('Emit: ', key, '\nRequest: ', request, '\nID: ', actionId);
-  };
-  if (logger && typeof logger === 'function') {
-    if(!request) request = "none";
-    logger('Emit: ' + key + 'Request: ' + request + 'ID: ' + actionId);
-  };
+  if (logger) logHelper('emit', key, request, actionId);
   socket.emit('emit', { key, request, actionId, socketID: socket.id });
   return new Promise((resolve, reject) => {
     cache[actionId] = { method: 'query', key, request, actionId, resolve, reject, socketID: socket.id };
@@ -192,12 +177,10 @@ export const emit = (key, request) => {
 
 export const set = (...args) => {
   if (args.length === 1 && typeof args[0] === 'object') {
-    if (logger && typeof logger !== 'function') console.log('Set: ', args[0]);
-    if (logger && typeof logger === 'function') logger('Set: ' + args[0]);
+    if (logger) logHelper('setSingle', args[0]);
     MainStore.props.props.addToReduxStore(args[0]);
   } else {
-    if (logger && typeof logger !== 'function') console.log('Set: ', ...args);
-    if (logger && typeof logger === 'function') logger('Set: ' + args);
+    if (logger) logHelper('setMulti', args);
     for (let i = 0; i < args.length; i = i + 2) {
       if (i + 1 === args.length) MainStore.props.props.addToReduxStore({ [args[i]]: null });
       else MainStore.props.props.addToReduxStore({ [args[i]]: args[i + 1] });
@@ -206,8 +189,7 @@ export const set = (...args) => {
 };
 
 export const get = (...keys) => {
-  if (logger && typeof logger !== 'function') console.log('Get: ', ...keys);
-  if (logger && typeof logger === 'function') logger('Get: ' + keys);
+  if (logger) logHelper('get', keys);
   if (keys.length === 0) return MainStore.props.props.reduxStore;
   else if (keys.length > 1) {
     const results = {};
@@ -217,7 +199,7 @@ export const get = (...keys) => {
 };
 
 export const destroy = (...keys) => {
-  if (logger) console.log('Destroy: ', ...keys);
+  if (logger) logHelper('destroy', keys);
   keys.forEach(key => MainStore.props.props.deleteFromReduxStore(key));
 };
 
@@ -275,4 +257,52 @@ const setupSocket = () => {
   socket.on('emitOnUnsubscribeResponse', data => {
     delete cache[data.actionId];
   });
+}
+
+// Consolidate the various logger messages into a single function
+const logHelper = (msg, ...etc) => {
+  if (msg === 'run') {
+    if (typeof logger !== 'function') {
+      if(!request) request = "none";
+      console.log('Run: ', etc[0], '\nRequest: ', etc[1], '\nID: ', etc[2]);
+    };
+    if (typeof logger === 'function') {
+      if(!request) request = "none";
+      logger('Run: ' + etc[0] + 'Request: ' + etc[1] + 'ID: ' + etc[2]);
+    };
+  }
+  if (msg === 'on') {
+    if (typeof logger !== 'function') console.log('On: ', etc[0]);
+    if (typeof logger === 'function') logger('On: ' + etc[0]);
+  }
+  if (msg === 'unsubscribe') {
+    if (typeof logger !== 'function') console.log('Unsubscribe: ', etc[0]);
+    if (typeof logger === 'function') logger('Unsubscribe: ' + etc[0]);
+  }
+  if (msg === 'emit') {
+    if (logger && typeof logger !== 'function') {
+      if(!request) request = "none";
+      console.log('Emit: ', etc[0], '\nRequest: ', etc[1], '\nID: ', etc[2]);
+    };
+    if (logger && typeof logger === 'function') {
+      if(!request) request = "none";
+      logger('Emit: ' + etc[0] + 'Request: ' + etc[1] + 'ID: ' + etc[2]);
+    };
+  }
+  if (msg === 'setSingle') {
+    if (typeof logger !== 'function') console.log('Set: ', etc[0]);
+    if (typeof logger === 'function') logger('Set: ' + etc[0]);
+  }
+  if (msg === 'setMulti') {
+    if (typeof logger !== 'function') console.log('Set: ', ...etc[0]);
+    if (typeof logger === 'function') logger('Set: ' + JSON.stringify(etc[0]));
+  }
+  if (msg === 'get') {
+    if (typeof logger !== 'function') console.log('Get: ', ...etc[0]);
+    if (typeof logger === 'function') logger('Get: ' + JSON.stringify(etc[0]));
+  }
+  if (msg === 'destroy') {
+    if (logger && typeof logger !== 'function') console.log('Destroy: ', ...etc[0]);
+    if (logger && typeof logger === 'function') logger('Destroy: ' + JSON.stringify(etc[0]));
+  }
 }
