@@ -274,7 +274,7 @@ action: function
 ```
 *Values*  
 `'SQL query'` - a raw SQL query string
-  * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `$prop`, where `prop` represents a property on the passed object.   
+  * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `:prop`, where `prop` represents a property on the passed object. Multiple SQL queries can be used in one action by separating them with a semicolon `;`,   
 
 `function` - function to execute, receiving three arguments:
   * `resolves` - returns its value to the client.
