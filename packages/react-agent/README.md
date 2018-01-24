@@ -56,7 +56,7 @@ render(
  , document.querySelector('#root'))
  ```
 
-Optionally, you can 1) set an initial state for React Agent with `store={ initialStore }`. As we’ll see, the state set with React Agent is accessible from any component. And, 2) log in the console what's happening under the hood by including `logger=true`.
+Optionally, you can 1) set an initial state for React Agent with `store={ initialStore }`. As we’ll see, the state set with React Agent is accessible from any component. And, 2) log in the console what's happening under the hood by including `logger={true}`.
 
 ```javascript
 const initialStore = {
@@ -66,7 +66,7 @@ const initialStore = {
 }
 
 render(
- <Agent store={ initialStore } logger=true>
+ <Agent store={ initialStore } logger={true}>
    <App />
  </Agent>
  , document.querySelector('#root'))
