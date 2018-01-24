@@ -1,5 +1,29 @@
-# Client-side Documentation for React Agent
+# Documentation
 
+## Index  
+### [Client-Side: React Agent](#client)  
+[Agent](#Agent)   
+[set](#set)  
+[get](#get)  
+[destroy](#destroy)  
+[run](#run)  
+[on](#on)  
+[emit](#emit)  
+[unsubscribe](#unsubscribe)  
+[isOfflineCacheEmpty](#isOfflineCacheEmpty)  
+[getStore](#getStore)  
+
+### [Server-Side: React Agent Server](#server) 
+[agent](#agent)  
+[pre](#pre)  
+[action](#action)  
+[callback](#callback)  
+[errorMessage](#errorMessage)  
+
+<a name="client"></a> 
+# Client-Side: React Agent
+
+<a name="Agent"></a>
 ## Agent
 ### Syntax
 ```javascript
@@ -22,6 +46,7 @@ The `<Agent>` wrapper is the initial set-up to make React Agent work throughout 
 
 ```
 
+<a name="set"></a>
 ## set
 ### Syntax
 ```javascript
@@ -45,6 +70,7 @@ The `set` method stores an object in React Agent's store, which uses 1) React's 
 
 ```
 
+<a name="get"></a>
 ## get
 ### Syntax
 ```javascript
@@ -63,6 +89,7 @@ The `get` method is used to retrieve a value from React Agent's store. If it is 
 
 ```
 
+<a name="destroy"></a>
 ## destroy
 ### Syntax
 ```javascript
@@ -77,6 +104,7 @@ Deletes a property and its value from React Agent's store.
 
 ```
 
+<a name="run"></a>
 ## run
 ### Syntax
 ```javascript
@@ -99,6 +127,7 @@ A promise, which resolves or rejects based on the server's response.
 
 ```
 
+<a name="on"></a>
 ## on
 ### Syntax
 ```javascript
@@ -114,7 +143,7 @@ The `on` method subscribes a client to an action key. That is, if `emit` is call
 ```javascript
 
 ```
-
+<a name="emit"></a>
 ## emit
 ### Syntax
 ```javascript
@@ -130,6 +159,7 @@ The `emit` method pushes an update from the server to any client who has subscri
 
 ```
 
+<a name="unsubscribe"></a>
 ## unsubscribe
 ### Syntax
 ```javascript
@@ -144,6 +174,7 @@ The `unsubscribe` method unsubscribes a client from emitted updates for an actio
 
 ```
 
+<a name="isOfflineCacheEmpty"></a>
 ## isOfflineCacheEmpty
 ### Syntax
 ```javascript
@@ -163,6 +194,7 @@ Also, consider including the flag `offlinePopUp={true}` in `<Agent>` for an auto
 
 ```
 
+<a name="getStore"></a>
 ## getStore
 ### Syntax
 ```javascript
@@ -176,9 +208,10 @@ Alternatively, use `get()` for the same result.
 ```javascript
 
 ```
+<a name="server"></a> 
+# Server-Side: React Agent Server
 
-# Server-side Documentation for React Agent Server
-
+<a name="agent"></a>
 ## agent
 ### Syntax
 ```javascript
@@ -202,6 +235,7 @@ The `agent` method is the intitial set-up to get React Agent Server working on t
 
 ```
 
+<a name="pre"></a>
 ## pre
 ### Syntax
 ```javascript
@@ -228,6 +262,7 @@ The object passed from the client can be modified in a pre function(s) before be
 
 ```
 
+<a name="action"></a>
 ## action
 ### Syntax
 ```javascript
@@ -239,7 +274,7 @@ action: function
 ```
 *Values*  
 `'SQL query'` - a raw SQL query string
-  * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `$prop`, where `prop` represents a property on the passed object.   
+  * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `:prop`, where `prop` represents a property on the passed object. Multiple SQL queries can be used in one action by separating them with a semicolon `;`,   
 
 `function` - function to execute, receiving three arguments:
   * `resolves` - returns its value to the client.
@@ -252,6 +287,7 @@ action: function
 
 ```
 
+<a name="callback"></a>
 ## callback
 ### Syntax
 ```javascript
@@ -273,13 +309,14 @@ When using `callback`, it can be useful to console log  `response` to parse what
 
 ```
 
+<a name="errorMessage"></a>
 ## errorMessage
 ### Syntax
 ```javascript
 errorMessage: 'string text'
 ```
 *Value*  
-'string text' - a string.
+`string text` - a string.
 ### Description
 `errorMessage` is an optional property on a key. If an error message is not included, React Agent uses its default error messages. 
 ### Example

@@ -1,5 +1,3 @@
-import { setTimeout } from 'timers';
-
 const { Agent } = require('../react-agent');
 const { run } = require('../react-agent');
 const { emit } = require('../react-agent');
@@ -34,14 +32,6 @@ describe('React Agent Server', () => {
   };
 
   const messages = [];
-  // const delay = (x, t) => new Promise(r => setTimeout(r, t, x));
-
-  before((done) => {
-    // await delay('1000', 1000);
-    setTimeout(() => {
-      done();
-    }, 1000);
-  });
 
   before(() => {
     client.query(`CREATE TABLE classes(
@@ -152,15 +142,15 @@ describe('React Agent Server', () => {
             if (request.id === 3) return request;
             return false;
           }],
-        action: `SELECT name FROM students WHERE id = $id`,
+        action: `SELECT name FROM students WHERE id = :id`,
         callback: response => {
           return response[0][0].name;
         }
       },
       getStudentsInTwoClasses: {
-        action: 'SELECT s.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id WHERE c.name = $class1 OR c.name = $class2',
+        action: 'SELECT s.name FROM students s INNER JOIN classes_students cs on s.id = cs.student_id INNER JOIN classes c on c.id = cs.class_id WHERE c.name = :class1 OR c.name = :class2',
         callback: response => {
-          const names = { names: [] };
+          const names = {names: []};
           response[0].forEach(x => {
             names.names.push(x.name);
           })
@@ -168,9 +158,9 @@ describe('React Agent Server', () => {
         }
       },
       getImage: {
-        action: (resolve, reject, body) => {
+          action: (resolve, reject, body) => {
           fetch(body.url, (error, response, body) => {
-            if (error) reject(error);
+            if(error) reject(error);
             else resolve('success');
           })
         }
@@ -265,11 +255,11 @@ describe('React Agent Server', () => {
 
     it('should pass the request object to the action if all pre functions pass', (done) => {
       run('getStudentByID', { id: 3 })
-        .then(data => {
-          data.should.equal('Tiffany');
-          done();
-        })
-        .catch(err => console.log('Error getStudentByID:', err));
+          .then(data => {
+            data.should.equal('Tiffany');
+            done();
+          })
+          .catch(err => console.log('Error getStudentByID:', err));
     });
 
   });
@@ -278,8 +268,8 @@ describe('React Agent Server', () => {
 
     it('should execute SQL command with ? replacement', (done) => {
       run('getStudentsInTwoClasses', { class1: 'Algorithms', class2: 'Examining Gender in the 21st C.' })
-        .then(data => {
-          data.names.should.deep.equal(['Jaimie', 'Peter', 'Justin']);
+        .then( data => {
+          data.names.should.deep.equal([ 'Jaimie', 'Peter', 'Justin' ]);
           done();
         })
     })
@@ -296,7 +286,7 @@ describe('React Agent Server', () => {
   describe('callback', (done) => {
 
     it('should execute with response from action and should return values to client', (done) => {
-      const students = ['Tom', 'Henry', 'Tiffany', 'Andrew', 'Eric', 'Althea', 'Monica', 'Mike', 'Peter', 'Justin', 'Jaimie', 'Annie', 'Dale', 'Erik'];
+      const students = [ 'Tom', 'Henry', 'Tiffany', 'Andrew', 'Eric', 'Althea', 'Monica', 'Mike', 'Peter', 'Justin', 'Jaimie', 'Annie', 'Dale', 'Erik' ];
       run('getStudents')
         .then(data => {
           data.should.deep.equal(students)
@@ -335,9 +325,9 @@ describe('React Agent Server', () => {
   describe('logger', () => {
 
     it('should log key, actionID, client object, pre, and completed', (done) => {
-      run('fullLog', { test: 'test' })
+      run('fullLog', {test: 'test'})
         .then(data => {
-          messages[messages.length - 4].slice(0, 45).should.have.lengthOf(45); // checking to see if UUID is included
+          messages[messages.length - 4].slice(0 , 45).should.have.lengthOf(45); // checking to see if UUID is included
           messages[messages.length - 4].slice(0, 14).should.equal(`Key: fullLogID`);
           messages[messages.length - 3].should.equal('  From client: {"test":"test"}');
           messages[messages.length - 2].should.equal('  Pre: Passed all function(s)');
@@ -348,7 +338,7 @@ describe('React Agent Server', () => {
     });
 
     it('should log pre errors with one function', (done) => {
-      run('preErrorSingleFunction', { test: 'test' })
+      run('preErrorSingleFunction', {test: 'test'})
         .catch(data => {
           messages[messages.length - 2].should.equal('  Pre-error: did not pass pre function')
           done();
@@ -356,7 +346,7 @@ describe('React Agent Server', () => {
     })
 
     it('should log pre errors with multiple functions', (done) => {
-      run('preErrorMultipleFunctions', { test: 'test' })
+      run('preErrorMultipleFunctions', {test: 'test'})
         .catch(data => {
           messages[messages.length - 2].should.equal('  Pre-error: did not pass function #2')
           done();
@@ -364,19 +354,19 @@ describe('React Agent Server', () => {
     })
 
     it('should log errors with the database', (done) => {
-      run('databaseError', { test: 'test' })
-        .catch(data => {
-          messages[messages.length - 2].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
-          done();
-        })
+      run('databaseError', {test: 'test'})
+      .catch(data => {
+        messages[messages.length - 2].should.equal('  Error with database: SequelizeDatabaseError: column s.names does not exist')
+        done();
+      })
     })
 
     it('should log rejections with the action function', (done) => {
-      run('actionFunctionError', { test: 'test' })
-        .catch(data => {
-          messages[messages.length - 2].should.equal('  Action function: rejected')
-          done();
-        })
+      run('actionFunctionError', {test: 'test'})
+      .catch(data => {
+        messages[messages.length - 2].should.equal('  Action function: rejected')
+        done();
+      })
     })
   });
 });

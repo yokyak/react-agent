@@ -114,12 +114,12 @@ login: {
         else return false
       }
     ],
-    action: 'SELECT username, _id FROM users WHERE username = $user AND password = $password',
+    action: 'SELECT username, _id FROM users WHERE username = :user AND password = :password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id })
   }
 ```
 
-In the action property above, two properties from our request object from the client will be injected into the SQL string. This is done by using `$` followed by the request object property name. For example, if the client-side `run` call looked like this:
+In the action property above, two properties from our request object from the client will be injected into the SQL string. This is done by using `:` followed by the request object property name. For example, if the client-side `run` call looked like this:
 
 ```javascript
 run('login', { user: 'Bob', password: 'superstrongpassword' })

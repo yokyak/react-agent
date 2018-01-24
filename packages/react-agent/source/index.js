@@ -49,6 +49,7 @@ const reducers = combineReducers({
 });
 
 class AgentStore extends Component {
+  // Call Redux action creator with initial store passed in by client
   componentWillMount() {
     if (initialStore) this.props.props.addToReduxStore(this.props.props.props.store);
   }
@@ -78,6 +79,7 @@ class AgentStore extends Component {
   }
 
   render() {
+    // If an initial store was provided, wait for it to be set in Redux before rendering
     if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
       return <div></div>;
     } else
@@ -87,6 +89,7 @@ class AgentStore extends Component {
 
 class ReduxWrapper extends Component {
 
+  // Setting a reference to a React component so its props (Redux store and methods) can be accessed
   renderStore() {
     MainStore = <AgentStore props={this.props} />;
     return MainStore;
@@ -97,8 +100,10 @@ class ReduxWrapper extends Component {
   }
 }
 
+// The Redux store and the Redux action creators are connected here
 const RW = connect(mapStateToProps, mapDispatchToProps)(ReduxWrapper);
 
+// The entire application is wrapped with Redux's Provider
 class ProviderWrapper extends Component {
   render() {
     return (
@@ -107,13 +112,6 @@ class ProviderWrapper extends Component {
       </Provider>
     );
   }
-}
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
-    if (server && testing) io.connect(port);
-    else if (server) socket = io.connect();
-  });
 }
 
 export const Agent = (props) => {
@@ -148,6 +146,9 @@ export const run = (keys, request) => {
     logger('Run: ' + keys + 'Request: ' + request + 'ID: ' + actionId);
   };
   socket.emit('run', { keys, request, actionId, socketID: socket.id });
+
+  // Pass the resolve and reject functions from the promise
+  // to the cache so they can be called when the server responds
   return new Promise((resolve, reject) => {
     cache[actionId] = { method: 'query', keys, request, actionId, resolve, reject, socketID: socket.id };
   });
@@ -185,6 +186,9 @@ export const emit = (key, request) => {
     logger('Emit: ' + key + 'Request: ' + request + 'ID: ' + actionId);
   };
   socket.emit('emit', { key, request, actionId, socketID: socket.id });
+
+  // Pass the resolve and reject functions from the promise
+  // to the cache so they can be called when the server responds
   return new Promise((resolve, reject) => {
     cache[actionId] = { method: 'query', key, request, actionId, resolve, reject, socketID: socket.id };
   });
@@ -192,10 +196,13 @@ export const emit = (key, request) => {
 
 export const set = (...args) => {
   if (args.length === 1 && typeof args[0] === 'object') {
+    // If set with an object, just pass that to action creator
     if (logger && typeof logger !== 'function') console.log('Set: ', args[0]);
     if (logger && typeof logger === 'function') logger('Set: ' + args[0]);
     MainStore.props.props.addToReduxStore(args[0]);
   } else {
+    // If comma seperated strings, loops through them and 
+    // pass to action creator one by one
     if (logger && typeof logger !== 'function') console.log('Set: ', ...args);
     if (logger && typeof logger === 'function') logger('Set: ' + args);
     for (let i = 0; i < args.length; i = i + 2) {
@@ -208,6 +215,7 @@ export const set = (...args) => {
 export const get = (...keys) => {
   if (logger && typeof logger !== 'function') console.log('Get: ', ...keys);
   if (logger && typeof logger === 'function') logger('Get: ' + keys);
+  // Return the entire store if no arguments are provided
   if (keys.length === 0) return MainStore.props.props.reduxStore;
   else if (keys.length > 1) {
     const results = {};
@@ -229,11 +237,15 @@ export const getStore = () => MainStore.props.props.reduxStore;
 
 export const getStoreComponent = () => MainStore;
 
+// This is only called if a server method is used,
+// otherwise never try to connect with socket.io
 const setupSocket = () => {
   server = true;
   if (testing) socket = io.connect(port);
   else socket = io.connect();
 
+  // Always check the cache for pending requests
+  // on a socket connection/reconnection
   socket.on('connect', () => {
     Object.values(cache).forEach(x => {
       if (x.method === 'query') socket.emit(x.method, { key : x.key, request: x.request, actionId: x.actionId, socketID: x.socketID });
@@ -268,11 +280,22 @@ const setupSocket = () => {
     }
   });
 
+  // On a response from the server for a subscribed socket, 
+  // call the function that was passed into the 'on' method
   socket.on('subscriber', data => {
     subscriptions[data.key].func(data.response);
   });
 
   socket.on('emitOnUnsubscribeResponse', data => {
     delete cache[data.actionId];
+  });
+}
+
+// If in a browser (as opposed to a test), reconnect to socket.io 
+// if the client goes offline then back online again
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    if (server && testing) io.connect(port);
+    else if (server) socket = io.connect();
   });
 }
