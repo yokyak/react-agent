@@ -3,10 +3,20 @@
 ## Agent
 ### Syntax
 ```javascript
-
+render(
+  <Agent>
+    <App />
+  </Agent>
+  , document.querySelector(#root))
 ```
 *Parameters*  
+`<Agent>` takes four *optional* arguments:  
+  * `devTools = { true }` - enables Redux Chrome Dev Tools
+  * `store= { initialStore }` - set React Agent's store with initial values by providing an object, `initialStore`
+  * `logger= { true }` - console logs what React Agent is doing on the client-side
+  * `offlinePopUp = { true }` - warns a user if they try to navigate away from the page with unexecuted server-side changes (i.e. in case of poor network connection)
 ### Description
+The `<Agent>` wrapper is the initial set-up for React Agent. Optionally, it can be configured to enable time travel debugging, a logger, an initial store, and a pop-up for unsaved changes. 
 ### Example
 ```javascript
 
@@ -15,10 +25,19 @@
 ## set
 ### Syntax
 ```javascript
+// arguments can be an object
+set({ property: value })
+set({ property0: value0, property1: value1, propertyN: valueN })
 
+// arguments can be comma separated values
+set(property, value)
+set(property0, value0, property1, value1, propertyN, valueN)
 ```
-*Parameters*  
+*Parameters*   
+`property` - a string  
+`value` -  any value
 ### Description
+Stores an object in React Agent's store, which uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
 ### Example
 ```javascript
 
@@ -27,10 +46,16 @@
 ## get
 ### Syntax
 ```javascript
-
+get(property)
 ```
 *Parameters*  
+`property` - a string referring to a property `set` in React Agent's store
+
+*Return value*  
+The value of the property in React Agent's store.
+
 ### Description
+The `get` method is used to retrieve a value from React Agent's store. If it is called without an argument, it returns the entire current state of the store. 
 ### Example
 ```javascript
 
@@ -39,10 +64,12 @@
 ## destroy
 ### Syntax
 ```javascript
-
+destroy(property)
 ```
 *Parameters*  
+`property` - a string referring to a property `set` in React Agent's store
 ### Description
+Deletes a property and its value from React Agent's store. 
 ### Example
 ```javascript
 
@@ -51,10 +78,17 @@
 ## run
 ### Syntax
 ```javascript
+\\ running a single action
+run(key[, value ])
 
+\\ running multiple actions
+run([key0[, key1[, keyN ] ] ] ][, value ])
 ```
 *Parameters*  
+`key` - a string that matches an action key defined on the server-side. Multiple `key`s should be included in an array.  
+`value` (optional) - a value that is passed to the server-side action. If multiple actions are run, the same value is passed to all of the actions. 
 ### Description
+`run` executes an action or multiple actions on the server-side, and can optionally send a value to that action(s). 
 ### Example
 ```javascript
 
@@ -63,10 +97,14 @@
 ## on
 ### Syntax
 ```javascript
-
+on(key, callback)
 ```
 *Parameters*  
+`key` - a string that matches an action key defined on the server-side. 
+`callback` - a function that runs on updates to the action, receiving one argument:
+  * `data` - the result of the server-side action
 ### Description
+The `on` method subscribes a client to an action key. That is, if `emit` is called with the corresponding key, the server pushes state updates to all subscribed clients.
 ### Example
 ```javascript
 
@@ -75,10 +113,13 @@
 ## emit
 ### Syntax
 ```javascript
-
+emit(key[, value])
 ```
 *Parameters*  
+`key` - a string that matches an action key defined on the server-side. 
+`value` (optional) - a value that is passed to the server-side action.
 ### Description
+The `emit` method pushes an update from the server to any client who has subscribed to a specific action key. 
 ### Example
 ```javascript
 
@@ -87,10 +128,12 @@
 ## unsubscribe
 ### Syntax
 ```javascript
-
+unsubscribe(key)
 ```
 *Parameters*  
+`key` - a string that matches an action key defined on the server-side. 
 ### Description
+The `unsubscribe` method unsubscribes a client from emitted updates for an action key.
 ### Example
 ```javascript
 
@@ -99,10 +142,17 @@
 ## isOfflineCacheEmpty
 ### Syntax
 ```javascript
-
+isOfflineCacheEmpty()
 ```
-*Parameters*  
+*Return Value*  
+Boolean indicating whether React Agent's cache is empty. 
 ### Description
+The `isOfflineCacheEmpty` method assesses the current state of the cache. The cache is used to store client requests to the server. Once a request is completed on the server, it is deleted from the client cache. 
+
+This method can be useful to determine if the client has requests that need to be sent to the server. For example, if network connection drops and a client continues to use the website, the cache may not be empty; `isOfflineCacheEmpty()` would return `false`. Once the connection returns, the cache would successfully resend any client requests made in the interim; `isOfflineCacheEmpty()` would return `true`. 
+
+Also, consider including the flag `offlinePopUp={true}` in `Agent` for an automatic pop-up if a client tries to navigate away from the site with unsaved progress. This pop-up uses `isOfflineCacheEmpty` under the hood.
+
 ### Example
 ```javascript
 
@@ -111,10 +161,12 @@
 ## getStore
 ### Syntax
 ```javascript
-
+getStore() 
 ```
-*Parameters*  
+*Return Value*  
+The current state of React Agent's store. 
 ### Description
+Alternatively, use `get()` for the same result.
 ### Example
 ```javascript
 
