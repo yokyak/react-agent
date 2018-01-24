@@ -268,7 +268,6 @@ const logHelper = (msg, ...etc) => {
       console.log('Run: ', etc[0], '\nRequest: ', request, '\nID: ', etc[2]);
     };
     if (typeof logger === 'function') {
-      if(!request) request = "none";
       logger('Run: ' + etc[0] + 'Request: ' + request + 'ID: ' + etc[2]);
     };
   }
