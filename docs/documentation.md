@@ -1,8 +1,8 @@
 # Documentation
 
-## Index  
-### [Client-Side: React Agent](#client)  
-  * [Agent](#Agent)   
+## Table Of Contents  
+### Client-Side: React Agent 
+  * [Agent](#AgentWrapper)   
   * [set](#set)  
   * [get](#get)  
   * [destroy](#destroy)  
@@ -13,7 +13,7 @@
   * [isOfflineCacheEmpty](#isOfflineCacheEmpty)  
   * [getStore](#getStore)  
 
-### [Server-Side: React Agent Server](#server) 
+### Server-Side: React Agent Server 
   * [agent](#agent)  
   * [pre](#pre)  
   * [action](#action)  
@@ -23,22 +23,22 @@
 <a name="client"></a> 
 # Client-Side: React Agent
 
-<a name="Agent"></a>
+<a name="AgentWrapper"></a>
 ## Agent
 ### Syntax
 ```javascript
 render(
-  <Agent property={value}>
+  <Agent attribute={value}>
     <App />
   </Agent>
   , document.querySelector(#root))
 ```
 *Parameters*  
-`<Agent>` wraps a higher order React component, `<App>`. It receives four *optional* arguments as  `property={value}`:  
-  * `devTools = { true }` - enables time travel debugging via Redux Chrome Dev Tools. 
-  * `store= { initialStore }` - sets React Agent's store with initial values by providing an object, `initialStore`.
-  * `logger= { true }` - console logs what React Agent is doing on the client-side.
-  * `offlinePopUp = { true }` - warns a user if they try to navigate away from the page with unexecuted server-side changes (i.e. in case of poor network connection).
+`<Agent>` wraps a higher order React component, `<App />`. It receives four *optional* arguments as  `attribute={value}`:  
+  * `devTools={true}` - Enables time travel debugging via Redux Chrome Dev Tools. 
+  * `store={initialStore}` - Sets React Agent's store with initial values by providing an object, `initialStore`.
+  * `logger={true}` - Console logs what React Agent is doing on the client-side.
+  * `offlinePopUp={true}` - Warns a user if they try to navigate away from the page with unexecuted server-side changes (such as in case of poor network connection).
 ### Description
 The `<Agent>` wrapper is the initial set-up to make React Agent work throughout your app. Optionally, it can be configured to enable time travel debugging, a logger, an initial store, and a pop-up for unsaved changes. 
 ### Example
@@ -50,7 +50,7 @@ const initialStore = {
 }
 
 render(
- <Agent devTools = { true } store={ initialStore } logger={ true } offlinePopUp={ true }>
+ <Agent devTools={true} store={initialStore} logger={true} offlinePopUp={true}>
    <App />
  </Agent>
  , document.querySelector('#root'))
@@ -60,28 +60,31 @@ render(
 ## set
 ### Syntax
 ```javascript
-// arguments can be an object
-set({ property0: value0 })
-set({ property0: value0[, property1: value1[, propertyN: valueN ] ] })
+// the argument can be an object
+set({ property1: value1 })
+set({ property1: value1 [, property2: value2, ...] })
 
 // arguments can be comma separated values
-set(property0, value0)
-set(property0, value0[, property1, value1[, ...propertyN, valueN ] ] )
+set(property1, value1)
+set(property1, value1[, property2, value2, ...] )
 ```
 *Parameters*   
-`property` - a string.   
-`value` -  any value.
-
-Only `property0` and `value0` are required arguments. If `value0` is not provided, the value will be null. 
+An object with a variable number of properties.   
+*or*  
+`property` - A string.   
+`value` -  Any value.
 ### Description
-The `set` method stores an object in React Agent's store, which uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
+The `set` method creates a new object for React Agent's store (rather than mutating it directly). It uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
 ### Example
 ```javascript
 // set with an object
-set({name: 'Annie', age: 26')
+set({ name: 'Annie', age: 26 })
 
 // set with multiple arguments
 set('name', 'Annie', 'age', 26)
+
+// add a new message by unpacking the previous messages and appending it
+set({ messages: [...get('messages'), 'new message'] })
 ```
 
 <a name="get"></a>
@@ -91,7 +94,7 @@ set('name', 'Annie', 'age', 26)
 get(property)
 ```
 *Parameters*  
-`property` - a string referring to a property `set` in React Agent's store
+`property` - A string referring to a property `set` in React Agent's store.
 
 *Return value*  
 The value of the `property` in React Agent's store.
@@ -110,7 +113,7 @@ get('currentUser') // returns 'Annie'
 destroy(property)
 ```
 *Parameters*  
-`property` - a string referring to a property `set` in React Agent's store
+`property` - A string referring to a property `set` in React Agent's store.
 ### Description
 Deletes a property and its value from React Agent's store. 
 ### Example
@@ -122,27 +125,27 @@ destroy('temporaryNumber')
 ## run
 ### Syntax
 ```javascript
-\\ running a single action
-run(key0[, value0 ])
+// running a single action
+run(key[, request ])
 
-\\ running multiple actions
-run([key0[, key1[, keyN ] ] ][, value ])
+// running multiple actions
+run([key1, key2, ...] [, request ])
 ```
 *Parameters*  
-`key` - a string that matches an action key defined on the server-side. Multiple `key`s are listed in an array.  
-`value` (optional) - a value that is passed to the server-side action(s). If multiple actions are run, the same value is passed to all of the actions. 
+`key` - A string that matches an action key defined on the server-side. Multiple `key`s can be listed in an array.  
+`request` (optional) - An object that can be passed to the server-side action(s). If multiple actions are run, the same object is passed to all of the actions. 
 
 *Return Value*  
 A promise, which resolves or rejects based on the server's response.  
 ### Description
-`run` executes an action or multiple actions on the server-side, and can optionally send a value to those action(s). 
+`run` executes an action or multiple actions on the server-side, and can optionally send a request object to those action(s). 
 ### Example
 ```javascript
 // run a single action
 run('addStudent', { name: 'Annie' })
 
 // run multiple actions
-run([ 'addStudent', 'addMessage' ], { name: 'Annie', message: 'Trapped in a simulation' })
+run(['addStudent', 'addMessage'], { name: 'Annie', message: 'Trapped in a simulation' })
 ```
 
 <a name="on"></a>
@@ -152,11 +155,11 @@ run([ 'addStudent', 'addMessage' ], { name: 'Annie', message: 'Trapped in a simu
 on(key, callback)
 ```
 *Parameters*  
-`key` - a string that matches an action key defined on the server-side. 
-`callback` - a function that runs when an action is `emit` by any client, receiving one argument:
-  * `data` - the result of the server-side action.
+`key` - A string that matches an action key defined on the server-side.   
+`callback` - A function that runs when an action is emitted by any client, receiving one argument:
+  * `data` - The result of the server-side action.
 ### Description
-The `on` method subscribes a client to an action key. That is, if `emit` is called with the corresponding action key, the server pushes state updates to all subscribed clients.
+The `on` method subscribes a client to an action key. That is, if `emit` is called with the corresponding action key, the server pushes the action's response to all subscribed clients.
 ### Example
 ```javascript
 on('getMessages', data => {
@@ -167,11 +170,11 @@ on('getMessages', data => {
 ## emit
 ### Syntax
 ```javascript
-emit(key[, value])
+emit(key[, request])
 ```
 *Parameters*  
-`key` - a string that matches an action key defined on the server-side. 
-`value` (optional) - a value that is passed to the server-side action.
+`key` - A string that matches an action key defined on the server-side.   
+`request` (optional) - An object that is passed to the server-side action.
 ### Description
 The `emit` method pushes an update from the server to any client who has subscribed to the corresponding action key. 
 ### Example
@@ -186,7 +189,7 @@ emit('getMessages', { cookieId: '123' })
 unsubscribe(key)
 ```
 *Parameters*  
-`key` - a string that matches an action key defined on the server-side. 
+`key` - A string that matches an action key defined on the server-side. 
 ### Description
 The `unsubscribe` method unsubscribes a client from emitted updates for an action key.
 ### Example
@@ -201,7 +204,7 @@ unsubscribe('getMessages')
 isOfflineCacheEmpty()
 ```
 *Return Value*  
-Boolean indicating whether React Agent's cache is empty. 
+A boolean indicating whether React Agent's cache is empty. 
 ### Description
 The `isOfflineCacheEmpty` method assesses the current state of the client cache. The cache is used to store client requests to the server. Once a request is completed on the server, it is deleted from the client cache. 
 
@@ -223,7 +226,7 @@ if (!isOfflineCacheEmpty()) {
 getStore() 
 ```
 *Return Value*  
-The current state of React Agent's store. 
+An object representing the current state of React Agent's store. 
 ### Description
 The `getStore` method returns the entire current state of React Agent's store. Alternatively, use `get()` for the same result.
 ### Example
@@ -240,7 +243,7 @@ const currentStore = getStore()
 agent(server, actions[, database])
 ```
 *Parameters*  
-`server` - a Node server.  
+`server` - A Node/Express server.  
 `actions` - a nested object where each entry is a key indicating the name of the action, and a value of an object containing the properties `pre` (optional), `action` (required), `callback` (optional), and `errorMessage` (optional).  
 `database` (optional) - an object containing the information necessary to connect to a database. It requires the six properties:
   * `name`
@@ -251,7 +254,7 @@ agent(server, actions[, database])
   * `port`
 
 ### Description
-The `agent` method is the intitial set-up to get React Agent Server working on the server-side.
+The `agent` method is the initial set-up to get React Agent Server working on the server-side.
 ### Example
 ```javascript
 const server = http.createServer(fn).listen(3000)
@@ -285,21 +288,21 @@ agent(server, actions, database)
 ### Syntax
 ```javascript
 // used with one function
-pre: function0
+pre: function1
 
 // used with multiple functions
-pre: [function0[, function1], ...functionN] ] ]
+pre: [function1 [, function2, ...] ]
 ```
 *Value*  
-`functionN` - a function executed before an action, receiving one argument:
-  * `request` (optional) - a value sent from the client
+A function or array of functions executed before an action. Each function receives one argument:
+  * `request` (optional) - An object sent from the client.
 
 ### Description
-The object passed from the client can be modified in a `pre` function(s) before being passed to an action.
+The object passed from the client can be modified in a `pre` function before being passed to an action.
 
- For only one `pre` function, `function0` receives a value passed from the client as it argument. In a `pre` function list, the return value from `functionN` is used as the argument of `functionN+1`. At the end of the list, the return value is passed to the action.
+ For only one `pre` function, it receives a value passed from the client as its argument. With an array of `pre` functions, the value returned from each function is used as the argument for the subsequent function. The value returned from last function is then passed to the action. 
  
- If a pre function returns `false`, the action is not executed and an error is returned to the client.
+ If any pre function returns `false`, the action is not executed and an error is returned to the client.
 
   
 ### Example
@@ -328,21 +331,23 @@ pre: [
 ### Syntax
 ```javascript
 // SQL query
-action: 'SQL query'
+action: 'SQL query string'
 
 // function
 action: function
 ```
-*Values*  
-`'SQL query'` - a raw SQL query string
-  * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `:prop`, where `prop` represents a property on the passed object. Multiple SQL queries can be used in one action by separating them with a semicolon `;`,   
+*Values*    
+A raw SQL query string.
+  * Values from the request object passed from `pre` or the client can be injected into the SQL query with a colon prefix. For example `:prop`, where `prop` represents a property on the passed request object. Multiple SQL queries can be used in one action by separating them with a semicolon.    
 
-`function` - function to execute, receiving three arguments:
-  * `resolve` - returns its value to the client.
-  * `reject` - the client will catch an error. 
-  * `body` (optional) - a value that the client has passed to the action, or the value returned from the final `pre` function.
+*or*
+
+A function to execute, receiving three arguments:
+  * `resolve` - Returns its value to the client.
+  * `reject` - The client will catch an error. 
+  * `request` (optional) - The object that the client has passed to the action, or the object returned from the final `pre` function.
 ### Description
-`action` is a required property on a key. It can be a SQL query, or a function which resolves and rejects. 
+`action` is a required property on a key. It can be a SQL query, or a function which resolves or rejects. 
 ### Example
 ```javascript
 // SQL query action
@@ -355,25 +360,26 @@ action: (resolve, reject, request) => {
     if (error) reject(error)
     else resolve(body)
   })
+}
 ```
 
 <a name="callback"></a>
 ## callback
 ### Syntax
 ```javascript
-callback: callbackFunction
+callback: function
 ```
 *Value*  
-`callbackFunction` - function to execute after the action completes, receiving one argument:
-  * `response` - object returned from the action.
+A function to execute after the action completes, receiving one argument:
+  * `response` - The returned value from the action.
 ### Description
-`callback` is an optional property on a key. The return value from callbackFunction is sent to the client. If `callback` is not provided, the response of the `action` will be sent directly to the client. 
+`callback` is an optional property on a key. The callback's returned value is sent to the client. If `callback` is not provided, the response of the `action` will be sent directly to the client. 
 
 As a best practice, a `callback` is included if the preceding action is a SQL query. 
 
 A `callback` cannot be included if the preceding action is a function (not a SQL query).
 
-When using `callback`, it can be useful to console log  `response` to parse what the SQL query `action` returns. 
+When using `callback`, it can be useful to console log  `response` to inspect what the SQL query `action` returns. 
 ### Example
 ```javascript
 callback: response => { 
@@ -390,7 +396,7 @@ callback: response => {
 errorMessage: 'string text'
 ```
 *Value*  
-`string text` - a string.
+An error message string.
 ### Description
 `errorMessage` is an optional property on a key. If an error message is not included, React Agent uses its default error messages. 
 ### Example
