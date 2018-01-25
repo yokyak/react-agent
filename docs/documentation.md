@@ -2,23 +2,23 @@
 
 ## Index  
 ### [Client-Side: React Agent](#client)  
-[Agent](#Agent)   
-[set](#set)  
-[get](#get)  
-[destroy](#destroy)  
-[run](#run)  
-[on](#on)  
-[emit](#emit)  
-[unsubscribe](#unsubscribe)  
-[isOfflineCacheEmpty](#isOfflineCacheEmpty)  
-[getStore](#getStore)  
+  * [Agent](#Agent)   
+  * [set](#set)  
+  * [get](#get)  
+  * [destroy](#destroy)  
+  * [run](#run)  
+  * [on](#on)  
+  * [emit](#emit)  
+  * [unsubscribe](#unsubscribe)  
+  * [isOfflineCacheEmpty](#isOfflineCacheEmpty)  
+  * [getStore](#getStore)  
 
 ### [Server-Side: React Agent Server](#server) 
-[agent](#agent)  
-[pre](#pre)  
-[action](#action)  
-[callback](#callback)  
-[errorMessage](#errorMessage)  
+  * [agent](#agent)  
+  * [pre](#pre)  
+  * [action](#action)  
+  * [callback](#callback)  
+  * [errorMessage](#errorMessage)  
 
 <a name="client"></a> 
 # Client-Side: React Agent
