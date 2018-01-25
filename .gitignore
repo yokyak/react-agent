@@ -2,6 +2,7 @@ node_modules
 build
 .DS_Store
 distribution
+.env
 
 # Coverage directory used by tools like istanbul
 coverage
