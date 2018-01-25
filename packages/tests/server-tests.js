@@ -16,18 +16,18 @@ const { JSDOM } = jsdom;
 const should = chai.should();
 const app = express();
 
-const uri = process.env.TESTSTR;
+const uri = 'postgres://zmiopbci:1yag36EFOHihzV6SlAYqSBDdybROREKn@tantor.db.elephantsql.com:5432/zmiopbci';
 const client = new pg.Client(uri);
 client.connect();
 
 describe('React Agent Server', () => {
   const db = {
-    name: process.env.TESTNAME,
-    user: process.env.TESTUSER,
-    password: process.env.TESTPASS,
+    name: 'zmiopbci',
+    user: 'zmiopbci',
+    password: '1yag36EFOHihzV6SlAYqSBDdybROREKn',
     dialect: 'postgres',
-    host: process.env.TESTURL,
-    port: process.env.TESTPORT
+    host: 'tantor.db.elephantsql.com',
+    port: 5432
   };
 
   const messages = [];
