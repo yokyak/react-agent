@@ -1,7 +1,7 @@
 # Documentation
 
-## Index  
-### [Client-Side: React Agent](#client)  
+## Table Of Contents  
+### Client-Side: React Agent 
   * [Agent](#AgentWrapper)   
   * [set](#set)  
   * [get](#get)  
@@ -13,7 +13,7 @@
   * [isOfflineCacheEmpty](#isOfflineCacheEmpty)  
   * [getStore](#getStore)  
 
-### [Server-Side: React Agent Server](#server) 
+### Server-Side: React Agent Server 
   * [agent](#agent)  
   * [pre](#pre)  
   * [action](#action)  
@@ -69,14 +69,12 @@ set(property1, value1)
 set(property1, value1[, property2, value2, ...] )
 ```
 *Parameters*   
-`setStore` - an object.   
+An object with a variable number of properties.   
 *or*  
-`property` - a string.   
-`value` -  any value.
-
-For the comma seperated arguments, if `value1` is not provided (or any value to a property), the value will be null. 
+`property` - A string.   
+`value` -  Any value.
 ### Description
-The `set` method creates a fresh store object for React Agent while adding new properties or replacing any old properties which are passed into it. It uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
+The `set` method creates a new object for React Agent's store (rather than mutating it directly). It uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
 ### Example
 ```javascript
 // set with an object
@@ -84,6 +82,9 @@ set({ name: 'Annie', age: 26 })
 
 // set with multiple arguments
 set('name', 'Annie', 'age', 26)
+
+// add a new message by unpacking the previous messages and appending it
+set({ messages: [...get('messages'), 'new message'] })
 ```
 
 <a name="get"></a>
@@ -132,7 +133,7 @@ run([key1, key2, ...] [, request ])
 ```
 *Parameters*  
 `key` - A string that matches an action key defined on the server-side. Multiple `key`s can be listed in an array.  
-`request` (optional) - an object that can be passed to the server-side action(s). If multiple actions are run, the same object is passed to all of the actions. 
+`request` (optional) - An object that can be passed to the server-side action(s). If multiple actions are run, the same object is passed to all of the actions. 
 
 *Return Value*  
 A promise, which resolves or rejects based on the server's response.  
@@ -337,7 +338,7 @@ action: function
 ```
 *Values*    
 A raw SQL query string.
-  * Values from the request object passed from `pre` or the client can be injected in the SQL query using the syntax `:prop`, where `prop` represents a property on the passed request object. Multiple SQL queries can be used in one action by separating them with a semicolon.    
+  * Values from the request object passed from `pre` or the client can be injected into the SQL query with a colon prefix. For example `:prop`, where `prop` represents a property on the passed request object. Multiple SQL queries can be used in one action by separating them with a semicolon.    
 
 *or*
 
@@ -372,7 +373,7 @@ callback: function
 A function to execute after the action completes, receiving one argument:
   * `response` - The returned value from the action.
 ### Description
-`callback` is an optional property on a key. The returned value is sent to the client. If `callback` is not provided, the response of the `action` will be sent directly to the client. 
+`callback` is an optional property on a key. The callback's returned value is sent to the client. If `callback` is not provided, the response of the `action` will be sent directly to the client. 
 
 As a best practice, a `callback` is included if the preceding action is a SQL query. 
 
