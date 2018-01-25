@@ -17,8 +17,9 @@
     "url": "https://github.com/yokyak/react-agent/issues"
   },
   "homepage": "https://github.com/yokyak/react-agent#readme",
-  "devDependencies": {
+  "dependencies": {
     "babel-cli": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "chalk": "^2.3.0",
     "mysql2": "^1.5.1",
@@ -29,8 +30,5 @@
     "sqlite3": "^3.1.13",
     "tedious": "^2.1.5",
     "uglify-js": "^3.3.8"
-  },
-  "dependencies": {
-    "babel-polyfill": "^6.26.0"
   }
 }
