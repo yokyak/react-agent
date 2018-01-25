@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { Agent } = require('../react-agent');
 const { run } = require('../react-agent');
 const { emit } = require('../react-agent');
@@ -18,7 +17,6 @@ const should = chai.should();
 const app = express();
 
 const uri = process.env.TESTSTR;
-
 const client = new pg.Client(uri);
 client.connect();
 
@@ -31,7 +29,7 @@ describe('React Agent Server', () => {
     host: process.env.TESTURL,
     port: process.env.TESTPORT
   };
-  
+
   const messages = [];
 
   before(() => {
