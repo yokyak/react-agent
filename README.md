@@ -5,6 +5,7 @@
 [![React Agent](https://img.shields.io/npm/v/react-agent.svg)](https://www.npmjs.com/package/react-agent)
 [![React Agent Server](https://img.shields.io/npm/v/react-agent-server.svg)](https://www.npmjs.com/package/react-agent-server)
 [![Build Status](https://travis-ci.org/yokyak/react-agent.svg?branch=master)](https://travis-ci.org/yokyak/react-agent)
+[![Coverage Status](https://coveralls.io/repos/github/yokyak/react-agent/badge.svg)](https://coveralls.io/github/yokyak/react-agent)
 
 React Agent synchronizes client-side and server-side state.  It can be included in any React project without conflict with other state management tools or REST APIs.
 
