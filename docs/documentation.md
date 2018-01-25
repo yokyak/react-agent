@@ -43,7 +43,17 @@ render(
 The `<Agent>` wrapper is the initial set-up to make React Agent work throughout your app. Optionally, it can be configured to enable time travel debugging, a logger, an initial store, and a pop-up for unsaved changes. 
 ### Example
 ```javascript
+const initialStore = {
+ first: true,
+ second: false,
+ third: 'ok'
+}
 
+render(
+ <Agent devTools = { true } store={ initialStore } logger={ true } offlinePopUp={ true }>
+   <App />
+ </Agent>
+ , document.querySelector('#root'))
 ```
 
 <a name="set"></a>
@@ -67,7 +77,11 @@ Only `property0` and `value0` are required arguments. If `value0` is not provide
 The `set` method stores an object in React Agent's store, which uses 1) React's diffing algorithm for fast re-rendering, and 2) Redux for time travel debugging. 
 ### Example
 ```javascript
+// set with an object
+set({name: 'Annie', age: 26')
 
+// set with multiple arguments
+set('name', 'Annie', 'age', 26)
 ```
 
 <a name="get"></a>
@@ -86,7 +100,7 @@ The value of the `property` in React Agent's store.
 The `get` method is used to retrieve a value from React Agent's store. If it is called without an argument, it returns the entire current state of the store. 
 ### Example
 ```javascript
-
+get('currentUser') // returns 'Annie'
 ```
 
 <a name="destroy"></a>
@@ -101,7 +115,7 @@ destroy(property)
 Deletes a property and its value from React Agent's store. 
 ### Example
 ```javascript
-
+destroy('temporaryNumber')
 ```
 
 <a name="run"></a>
@@ -124,7 +138,11 @@ A promise, which resolves or rejects based on the server's response.
 `run` executes an action or multiple actions on the server-side, and can optionally send a value to those action(s). 
 ### Example
 ```javascript
+// run a single action
+run('addStudent', { name: 'Annie' })
 
+// run multiple actions
+run([ 'addStudent', 'addMessage' ], { name: 'Annie', message: 'Trapped in a simulation' })
 ```
 
 <a name="on"></a>
@@ -141,7 +159,9 @@ on(key, callback)
 The `on` method subscribes a client to an action key. That is, if `emit` is called with the corresponding action key, the server pushes state updates to all subscribed clients.
 ### Example
 ```javascript
-
+on('getMessages', data => {
+  set('messages', data.messages)
+})
 ```
 <a name="emit"></a>
 ## emit
@@ -156,7 +176,7 @@ emit(key[, value])
 The `emit` method pushes an update from the server to any client who has subscribed to the corresponding action key. 
 ### Example
 ```javascript
-
+emit('getMessages', { cookieId: '123' })
 ```
 
 <a name="unsubscribe"></a>
@@ -171,7 +191,7 @@ unsubscribe(key)
 The `unsubscribe` method unsubscribes a client from emitted updates for an action key.
 ### Example
 ```javascript
-
+unsubscribe('getMessages')
 ```
 
 <a name="isOfflineCacheEmpty"></a>
@@ -191,7 +211,9 @@ Also, consider including the flag `offlinePopUp={true}` in `<Agent>` for an auto
 
 ### Example
 ```javascript
-
+if (!isOfflineCacheEmpty()) {
+  // warn if a user tries to navigate away from page
+}
 ```
 
 <a name="getStore"></a>
@@ -203,10 +225,10 @@ getStore()
 *Return Value*  
 The current state of React Agent's store. 
 ### Description
-Alternatively, use `get()` for the same result.
+The `getStore` method returns the entire current state of React Agent's store. Alternatively, use `get()` for the same result.
 ### Example
 ```javascript
-
+const currentStore = getStore()
 ```
 <a name="server"></a> 
 # Server-Side: React Agent Server
@@ -232,7 +254,30 @@ agent(server, actions[, database])
 The `agent` method is the intitial set-up to get React Agent Server working on the server-side.
 ### Example
 ```javascript
+const server = http.createServer(fn).listen(3000)
 
+const actions = {
+  getMessages: {
+    pre: request => request.cookie === '123',
+    action: 'SELECT * FROM posts'
+    callback: (response) => {
+      return response[0].forEach(element => {
+        return element.message
+      })
+    }
+  }
+}
+
+const database = {
+  name: 'billy',
+  user: 'billy-user',
+  password: 'billy-pw',
+  dialect: 'postgres',
+  host: 'rabbit.db.elephantsql.com',
+  port: 3421
+}
+
+agent(server, actions, database)
 ```
 
 <a name="pre"></a>
@@ -250,7 +295,7 @@ pre: [function0[, function1], ...functionN] ] ]
   * `request` (optional) - a value sent from the client
 
 ### Description
-The object passed from the client can be modified in a pre function(s) before being passed to an action.
+The object passed from the client can be modified in a `pre` function(s) before being passed to an action.
 
  For only one `pre` function, `function0` receives a value passed from the client as it argument. In a `pre` function list, the return value from `functionN` is used as the argument of `functionN+1`. At the end of the list, the return value is passed to the action.
  
@@ -259,7 +304,23 @@ The object passed from the client can be modified in a pre function(s) before be
   
 ### Example
 ```javascript
+// one function
+pre: request => request.cookie1 === '123'
 
+// multiple functions
+pre: [
+  request => {
+    if (request.cookie1 === '123') return request
+    return false
+  },
+  request => {
+    if (request.cookie2 === '456') {
+      request.authentification = true;
+      return request;
+    }
+    return false
+  }
+]
 ```
 
 <a name="action"></a>
@@ -277,14 +338,23 @@ action: function
   * Values from an object passed from `pre` or the client can be injected in the SQL query using the syntax `:prop`, where `prop` represents a property on the passed object. Multiple SQL queries can be used in one action by separating them with a semicolon `;`,   
 
 `function` - function to execute, receiving three arguments:
-  * `resolves` - returns its value to the client.
-  * `rejects` - the client will catch an error. 
+  * `resolve` - returns its value to the client.
+  * `reject` - the client will catch an error. 
   * `body` (optional) - a value that the client has passed to the action, or the value returned from the final `pre` function.
 ### Description
 `action` is a required property on a key. It can be a SQL query, or a function which resolves and rejects. 
 ### Example
 ```javascript
+// SQL query action
+action: 'INSERT INTO students(name) VALUE(:name); SELECT * from students'
 
+// function action
+action: (resolve, reject, request) => {
+  const url = request.url
+  fetch(url, (error, response, body) => {
+    if (error) reject(error)
+    else resolve(body)
+  })
 ```
 
 <a name="callback"></a>
@@ -306,7 +376,11 @@ A `callback` cannot be included if the preceding action is a function (not a SQL
 When using `callback`, it can be useful to console log  `response` to parse what the SQL query `action` returns. 
 ### Example
 ```javascript
-
+callback: response => { 
+  return response[0].map(element => {
+    return { name: element.name, id: element.id }
+  })
+}
 ```
 
 <a name="errorMessage"></a>
@@ -321,5 +395,5 @@ errorMessage: 'string text'
 `errorMessage` is an optional property on a key. If an error message is not included, React Agent uses its default error messages. 
 ### Example
 ```javascript
-
+errorMessage: 'Error with the getStudents action.'
 ```
