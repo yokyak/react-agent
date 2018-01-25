@@ -2,7 +2,7 @@
   "name": "react-agent-server",
   "version": "1.0.0",
   "description": "",
-  "main": "./distribution/index.min.js",
+  "main": "./distribution/index.js",
   "scripts": {
     "build": "babel source --out-dir distribution; ./node_modules/.bin/uglifyjs ./distribution/index.js -o ./distribution/index.min.js -c -m",
     "prepublish": "npm run build"
