@@ -4,7 +4,7 @@
   "description": "",
   "main": "./distribution/index.min.js",
   "scripts": {
-    "build": "babel source --out-dir distribution; uglifyjs ./distribution/index.js -o ./distribution/index.min.js -c -m",
+    "build": "babel source --out-dir distribution; ./node_modules/.bin/uglifyjs ./distribution/index.js -o ./distribution/index.min.js -c -m",
     "prepublish": "npm run build"
   },
   "repository": {
@@ -27,7 +27,8 @@
     "sequelize": "^4.29.0",
     "socket.io": "^2.0.4",
     "sqlite3": "^3.1.13",
-    "tedious": "^2.1.5"
+    "tedious": "^2.1.5",
+    "uglify-js": "^3.3.8"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0"
