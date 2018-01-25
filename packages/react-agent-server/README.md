@@ -24,10 +24,10 @@ React Agent includes offline-support to render optimistic updates and then synch
 The popular conceptualization of state management stores state in two places: data on the client-side and data on the server-side.
 
 To connect these, front-end and back-end developers usually write a lot of code such as HTTP requests, controllers, and routes. It can get complicated.
-![previous](./../../docs/imgs/diagram-before.gif)
+![previous](https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-before.gif)
 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
-![now](./../../docs/imgs/diagram-after.gif)
+![now](https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-after.gif)
 
 # Getting Started
 
