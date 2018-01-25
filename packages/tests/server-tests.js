@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { Agent } = require('../react-agent');
 const { run } = require('../react-agent');
 const { emit } = require('../react-agent');
@@ -11,27 +12,26 @@ const pg = require('pg');
 const chai = require('chai');
 const jsdom = require('jsdom');
 const fetch = require('request');
-require('dotenv').config()
 
 const { JSDOM } = jsdom;
 const should = chai.should();
 const app = express();
 
-const uri = 'postgres://nupdilwa:wKwvHTFrRlqfKgJAQ5088RaCIhDJLHz5@nutty-custard-apple.db.elephantsql.com:5432/nupdilwa';
+const uri = process.env.TESTSTR;
 
 const client = new pg.Client(uri);
 client.connect();
 
 describe('React Agent Server', () => {
   const db = {
-    name: process.env.TEST_NAME,
-    user: process.env.TEST_USER,
-    password: process.env.TEST_PASS,
+    name: process.env.TESTNAME,
+    user: process.env.TESTUSER,
+    password: process.env.TESTPASS,
     dialect: 'postgres',
-    host: process.env.TEST_URL,
-    port: process.env.TEST_PORT
+    host: process.env.TESTURL,
+    port: process.env.TESTPORT
   };
-
+  
   const messages = [];
 
   before(() => {
