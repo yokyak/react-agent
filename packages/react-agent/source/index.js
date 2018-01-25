@@ -9,6 +9,8 @@ const uuidv4 = require('uuid/v4');
 const cache = {}, subscriptions = {};
 let MainStore, socket, port, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
 
+// ----- Start Of Redux Store Setup ----- //
+
 const addToReduxStore = (object) => {
   return {
     type: Object.keys(object)[0],
@@ -49,12 +51,19 @@ const reducers = combineReducers({
   reduxStore: storeReducer
 });
 
+// ----- End Of Redux Store Setup ----- //
+
 class AgentStore extends Component {
   // Call Redux action creator with initial store passed in by client
   componentWillMount() {
     if (initialStore) this.props.props.addToReduxStore(this.props.props.props.store);
   }
 
+  // componentDidMount and componentWillMount are used to create 
+  // a popup warning the user that there is unsaved progress
+  // AKA there are requests that have not yet received a response from the
+  // server which would indicate that the actions have been run successfully
+  
   componentDidMount() {
     if (offlinePopUp) {
       window.addEventListener('beforeunload', (ev) => {
@@ -81,10 +90,8 @@ class AgentStore extends Component {
 
   render() {
     // If an initial store was provided, wait for it to be set in Redux before rendering
-    if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) {
-      return <div></div>;
-    } else
-    return this.props.props.props.children;
+    if (initialStore && Object.keys(this.props.props.reduxStore).length === 0) return <div></div>;
+    else return this.props.props.props.children;
   }
 }
 
@@ -116,21 +123,20 @@ class ProviderWrapper extends Component {
 }
 
 export const Agent = (props) => {
+
+  // Initial set up with any attributes used with Agent component
   if (props.hasOwnProperty('store')) initialStore = true;
   if (props.logger && typeof props.logger !== 'function') logger = true;
   if (props.logger && typeof props.logger === 'function') logger = props.logger;
   if (props.devTools && props.devTools === true) {
     providerStore = createStore(reducers, composeWithDevTools());
-  } else {
-    providerStore = createStore(reducers);
-  }
-  if (props.offlinePopUp && props.offlinePopUp === true) {
-    offlinePopUp = true;
-  }
+  } else providerStore = createStore(reducers);
+  if (props.offlinePopUp && props.offlinePopUp === true) offlinePopUp = true;
   if (props.testing) {
     testing = true;
     port = props.testing;
   }
+
   return new ProviderWrapper(props);
 }
 
@@ -154,6 +160,8 @@ export const on = (key, func) => {
   const actionId = uuidv4();
   cache[actionId] = { method: 'subscribe', key, actionId }
   socket.emit('subscribe', { key, actionId });
+  
+  // Add the callback that will be called later to the 'subscriptions' object
   subscriptions[key] = { func };
 };
 
@@ -163,7 +171,7 @@ export const unsubscribe = (key) => {
   const actionId = uuidv4();
   cache[actionId] = { method: 'unsubscribe', key, actionId };
   socket.emit('unsubscribe', { key, actionId });
-  delete subscriptions[key];key
+  delete subscriptions[key];
 };
 
 export const emit = (key, request) => {
@@ -238,8 +246,11 @@ const setupSocket = () => {
     let actionId = data.actionId;
     let response = data.response;
 
-    // if multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
-    // each response in the returned object will have the same action id
+    // If multiple actions are run at once (i.e. run([__, __]) an object containing each response will be returned
+    // Each response in the returned object will have the same action id
+
+    // If the object from the server doesn't have an actionId on its first level, we know
+    // multiple actions were ran in a 'run' method and the object must be parsed a bit first
     if (!data.hasOwnProperty('actionId')) {
       const keys = Object.keys(data);
       actionId = data[keys[0]].actionId;
@@ -252,6 +263,9 @@ const setupSocket = () => {
       });
       response = data;
     }
+
+    // If any errors are on the object, reject the promise 
+    // Otherwise resolve and delete it out of cache
     if (cache[actionId]) {
       if (data.preError) cache[actionId].reject(data.preError);
       else if (data.databaseError) cache[actionId].reject(data.databaseError);
@@ -268,6 +282,8 @@ const setupSocket = () => {
     subscriptions[data.key].func(data.response);
   });
 
+  // Take the action out of the cache whenever the 
+  // server successfully completed its task
   socket.on('emitOnUnsubscribeResponse', data => {
     delete cache[data.actionId];
   });

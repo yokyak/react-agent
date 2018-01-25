@@ -99,7 +99,9 @@ module.exports = (server, actions, database, logger = false) => {
       if (offlineCache[socketID]) offlineCache[socketID][actionId] = 0;
       else offlineCache[socketID] = { [actionId]: 0 };
       if (logger) logHelper('keyId');
-     
+    
+      // Run any pre functions and reassign the request object to what
+      // each one returns, or throw an error if one returns false
       if (actions[key].pre) {
         if (Array.isArray(actions[key].pre)) {
           for (let i = 0; i < actions[key].pre.length; i++) {
@@ -122,9 +124,11 @@ module.exports = (server, actions, database, logger = false) => {
 
       if (logger) logHelper('passAll');
 
+      // If an action isn't a function, treat it as a SQL string
       if (typeof actions[key].action !== 'function') {
         sequelize.query(actions[key].action, { replacements: request })
           .then((response) => {
+            // Check for a callback for the actions and run it if so
             if (actions[key].callback) {
               callback({ key, response: actions[key].callback(response), actionId });
             } else {
@@ -133,6 +137,7 @@ module.exports = (server, actions, database, logger = false) => {
           })
           .catch((error) => {
             if (logger) logHelper('databaseError', error); 
+            // Use custom error message, or default message if no custom one is provided
             if (actions[key].errorMessage) {
               callback({ key, databaseError: actions[key].errorMessage, actionId });
             } else {
@@ -140,6 +145,8 @@ module.exports = (server, actions, database, logger = false) => {
             }
           });
       } else {
+        // If the action is a function, create a promise and pass the
+        // resolve and reject functions into it
         const promise = new Promise((resolve, reject) => {
           actions[key].action(resolve, reject, request);
         });
@@ -158,6 +165,9 @@ module.exports = (server, actions, database, logger = false) => {
 
     socket.on('subscribe', ({ key, actionId }) => {
       socket.emit('emitOnUnsubscribeResponse', { actionId });
+
+      // Add socket to the array of sockets for the given key
+      // or create a new array under that key if it doesn't exist
       if (subscribedSockets[key]) {
         if (!subscribedSockets[key].includes(socket)) {
           subscribedSockets[key].push(socket);
@@ -167,6 +177,9 @@ module.exports = (server, actions, database, logger = false) => {
 
     socket.on('unsubscribe', ({ key, actionId }) => {
       socket.emit('emitOnUnsubscribeResponse', { actionId });
+
+      // Find the subscribed socket and remove
+      // it from the array for the given key
       if (subscribedSockets[key] && subscribedSockets[key].includes(socket)) {
         const i = subscribedSockets[key].indexOf(socket);
         if (i > -1) {
@@ -181,6 +194,9 @@ module.exports = (server, actions, database, logger = false) => {
       if (subscribedSockets[data.key]) {
         runAction(data.key, data.request, data.actionId, data.socketID, (result) => {
           socket.emit('emitOnUnsubscribeResponse', { actionId: data.actionId });
+
+          // Loop through the array of sockets for
+          // the given key and send back the result
           subscribedSockets[data.key].forEach((subSocket) => {
             subSocket.emit('subscriber', result);
           });
@@ -190,13 +206,19 @@ module.exports = (server, actions, database, logger = false) => {
 
     socket.on('run', (data) => {
       let response = {}, finished = 0;
+
+      // Pass every key through runAction that was passed into client 'run' method
       data.keys.forEach(key => {
         runAction(key, data.request, data.actionId, data.socketID, result => {
           finished++;
           response[result.key] = result;
           if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key, data.actionId);
           if (logger && typeof logger === 'function') logger('  Completed: ' + key + data.actionId);
+
+          // Ensure every runAcion call has finished
           if (finished === data.keys.length) {
+
+            // If only one key was provided, unpack the response object
             if (data.keys.length === 1) response = response[data.keys[0]];
             socket.emit('response', response);
           }
