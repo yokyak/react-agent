@@ -22,6 +22,8 @@ module.exports = (server, actions, database, logger = false) => {
     });
   }
 
+  // Each property added to subscribedSockets will correspond to an action
+  // name, and the value will be an array of sockets subscribed to that action
   const subscribedSockets = {};
 
   // Precaution for offline cache:
