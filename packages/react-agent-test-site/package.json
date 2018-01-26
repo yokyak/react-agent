@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack; node index.js",
-    "build": "webpack; node index.js",
+    "start": "node index.js webpack",
+    "build": "node index.js webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
