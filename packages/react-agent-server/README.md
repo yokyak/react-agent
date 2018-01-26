@@ -5,14 +5,20 @@
 [![Build Status](https://travis-ci.org/yokyak/react-agent.svg?branch=master)](https://travis-ci.org/yokyak/react-agent)
 [![Coverage Status](https://coveralls.io/repos/github/yokyak/react-agent/badge.svg)](https://coveralls.io/github/yokyak/react-agent)
 
-React Agent synchronizes client-side and server-side state.  It can be included in any React project without conflict with other state management tools or REST APIs.
+React Agent is a JavaScript library for your client store, server querying, and database management. It can be included in any React project without conflict with other state management tools or REST APIs.
 
 React Agent is easy to learn.
 
 Here's the basic idea: the client runs 'actions' that are defined on the server-side.
 
 ```javascript
-run('addUser', { user: 'Billy' })
+// client.js
+run(‘setMessage’, { message: ‘Hello World’ })
+
+// server.js
+setMessage: {
+    action: ‘INSERT INTO messages(text) VALUES(:message)’
+}
 ```
 
 These actions can be as powerful as you want -- i.e. CRUD operations, API calls, and authentication. Moreover, clients can subscribe to server-side actions so that they  receive live updates.
