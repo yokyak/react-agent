@@ -9,7 +9,7 @@ const uuidv4 = require('uuid/v4');
 const cache = {}, subscriptions = {};
 let MainStore, socket, port, server = false, logger = false, providerStore, initialStore = false, offlinePopUp = false, testing = false;
 
-// ----- Start Of Redux Store Setup ----- //
+// ---- Start Of Redux Store Setup ---- //
 
 const addToReduxStore = (object) => {
   return {
