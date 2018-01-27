@@ -25,5 +25,5 @@ const database = {
 //   getMessages: null,
 // }
 
-// add runs as fourth parameter to use PostMan style testing for server-side
-agent(server, actions, database, false);
+// add runs as fifth parameter to use PostMan style testing for server-side
+agent(server, actions, database, false /*, runs */);
