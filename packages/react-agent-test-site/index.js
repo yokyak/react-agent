@@ -21,7 +21,7 @@ const database = {
 
 // const runs = {
 //   register: { username: 'theBestName', password: 'ugh' },
-//   postMessage: { message: 'hi NOW', id: 3 },
+//   // postMessage: { message: 'hi NOW', id: 3 },
 //   getMessages: null,
 // }
 
