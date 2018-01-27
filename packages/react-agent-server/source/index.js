@@ -255,13 +255,14 @@ module.exports = (server, actions, database, logger = false, runs) => {
         response[result.key] = result;
         if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key);
         if (logger && typeof logger === 'function') logger('  Completed: ' + key);
-
+        delete response[result.key].actionId;
         // Ensure every runAcion call has finished
         if (finished === Object.keys(runs).length) {
 
           // If only one key was provided, unpack the response object
           if (Object.keys(runs).length === 1) response = response[Object.keys(runs)[0]];
-          console.log(chalk.blue('Results from run tests: '), response);
+          console.log(chalk.blue('Results from run tests: '));
+          console.log(response);
         }
       });
     });
