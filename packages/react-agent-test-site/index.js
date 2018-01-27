@@ -19,4 +19,14 @@ const database = {
   port: process.env.DBPORT
 };
 
-agent(server, actions, database, true);
+const runs = {
+  register: {username: 'theBestName', password: 'ugh'},
+  getMessages: null,
+}
+
+async function getRuns() {
+  const returnedRuns = await agent(server, actions, database, true, runs);
+  console.log('RETURNED', returnedRuns);
+}
+
+getRuns();
