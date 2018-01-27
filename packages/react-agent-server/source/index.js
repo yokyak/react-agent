@@ -248,27 +248,22 @@ module.exports = (server, actions, database, logger = false, runs) => {
     let counter1 = 0;
     let counter2 = 0;
     
-    async function testRun() {
-      // Pass every key through runs from Agent for testing server-side for backend developers
-      Object.keys(runs).forEach(key => {
-        runAction(key, runs[key], counter1++, counter2++, result => {
-          finished++;
-          response[result.key] = result;
-          if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key);
-          if (logger && typeof logger === 'function') logger('  Completed: ' + key);
+    // Pass every key through runs from Agent for testing server-side for backend developers
+    Object.keys(runs).forEach(key => {
+      runAction(key, runs[key], counter1++, counter2++, result => {
+        finished++;
+        response[result.key] = result;
+        if (logger && typeof logger !== 'function') console.log(chalk.bold('  Completed: '), key);
+        if (logger && typeof logger === 'function') logger('  Completed: ' + key);
 
-          // Ensure every runAcion call has finished
-          if (finished === Object.keys(runs).length) {
+        // Ensure every runAcion call has finished
+        if (finished === Object.keys(runs).length) {
 
-            // If only one key was provided, unpack the response object
-            if (Object.keys(runs).length === 1) response = response[Object.keys(runs)[0]];
-            return response;
-          }
-        });
+          // If only one key was provided, unpack the response object
+          if (Object.keys(runs).length === 1) response = response[Object.keys(runs)[0]];
+          return response;
+        }
       });
-    }
-    
-    return testRun();
-
+    });
   }
 }

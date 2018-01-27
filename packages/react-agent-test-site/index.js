@@ -24,9 +24,4 @@ const runs = {
   getMessages: null,
 }
 
-async function getRuns() {
-  const returnedRuns = await agent(server, actions, database, true, runs);
-  console.log('RETURNED', returnedRuns);
-}
-
-getRuns();
+agent(server, actions, database, false, runs);

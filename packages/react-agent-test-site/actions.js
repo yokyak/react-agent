@@ -10,6 +10,7 @@ module.exports = {
       response[0].sort((a, b) => {
         return new Date(a.date) - new Date(b.date);
       });
+      console.log('RESPONSE getMessages', { messages: response[0] });
       return { messages: response[0] };
     }
   },
