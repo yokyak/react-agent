@@ -19,4 +19,11 @@ const database = {
   port: process.env.DBPORT
 };
 
-agent(server, actions, database, true);
+// const runs = {
+//   register: { username: 'theBestName', password: 'ugh' },
+//   postMessage: { message: 'hi NOW', id: 3 },
+//   getMessages: null,
+// }
+
+// add runs as fifth parameter to use PostMan style testing for server-side
+agent(server, actions, database, false /*, runs */);
