@@ -261,7 +261,7 @@ module.exports = (server, actions, database, logger = false, runs) => {
 
           // If only one key was provided, unpack the response object
           if (Object.keys(runs).length === 1) response = response[Object.keys(runs)[0]];
-          return response;
+          console.log(chalk.blue('Results from run tests: '), response);
         }
       });
     });
