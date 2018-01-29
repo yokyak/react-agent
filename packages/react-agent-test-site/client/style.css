@@ -67,7 +67,7 @@ button:hover {
 
 #message-box {
   background-color: white;
-  width: 50vw;
+  width: 56vw;
   height: calc(100vh - 250px);
   margin-bottom: 30px;
   border: 2px solid #373737;
@@ -84,6 +84,12 @@ button:hover {
 
 #submit {
   margin-left: 30px;
+}
+
+#gif {
+  width: 5.2vw;
+  margin-left: 10px;
+  color: 
 }
 
 #destroy {

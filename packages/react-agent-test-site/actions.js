@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fetch = require('request');
 
 module.exports = {
@@ -53,6 +54,16 @@ module.exports = {
         if (error) reject(error);
         else resolve(body);
       });
-    }
-  }
+    },
+  },
+  getGIF: {
+    action: (resolve, reject, request) => {
+      const query = request.split(' ').join('+');
+      fetch(`http://api.giphy.com/v1/gifs/search?q=${query}&api_key=${process.env.APIKEYGIPHY}&limit=1`, (error, response, body) => {
+        const parsedBody = JSON.parse(body);
+        if (parsedBody.data.length === 0 || error) reject();
+        else resolve(parsedBody.data[0].images.fixed_height.url);
+      });
+    },
+  },
 };
