@@ -23,7 +23,7 @@ const database = {
 //   // register: { username: 'theBestName', password: 'ugh' },
 //   // postMessage: { message: 'hi NOW', id: 3 },
 //   // getMessages: null,
-//   getGIF: 'fun',
+//   // getGIF: 'fun',
 // };
 
 // add runs as fifth parameter to use PostMan-style testing for server-side

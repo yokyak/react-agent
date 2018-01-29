@@ -73,7 +73,7 @@ class Chat extends Component {
   
   handleMessages(messages) {
     return messages.map((message, i) => {
-      const gif = message.chatmessage.slice(0, 30).match(/^https|media|giphy$/);
+      const gif = message.chatmessage.match(/https:\/\/media[0-9]\.giphy\.com\/media\//);
       return (
         <div key={i}>
           { gif ? <img src={message.chatmessage}></img> : message.chatmessage }<br />
