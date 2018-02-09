@@ -35,6 +35,8 @@ To connect these, front-end and back-end developers usually write a lot of code 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
 ![now](https://raw.githubusercontent.com/yokyak/react-agent/master/docs/imgs/diagram-after.gif)
 
+Below is a server-side guide. Here's our full [documentation](https://github.com/tskittles/react-agent/blob/master/docs/documentation.md). 
+
 # Getting Started
 
 This guide is focused on server-side usage of React Agent, although it includes necessary details to know about client-side usage. See [React Agent](https://github.com/yokyak/react-agent/tree/master/packages/react-agent) for more information about client-side set-up.
@@ -107,7 +109,7 @@ const actions = {
 }
 ```
 
-A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `run` method returns will be rejected and the action will not run.
+A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return `false`, the promise that the client-side `run` method returns will be rejected and the action will not run.
 
 ```javascript
 login: {
@@ -150,6 +152,23 @@ const actions = {
 }
 ```
 
+Similar to the functionality of PostMan, it is also possible to run actions defined on the server-side without setting up the client-side. We find this feature very useful since it makes it possible to set up the backend independently of the frontend
+
+Create an object where 1) each attribute is the name of the action that is being tested, and 2) each respective value is the value being passed to the action from the client, if applicable. If a value is not being passed from the client, the value should be null. 
+
+Then, include this object as the fifth argument of the `agent` method. As a reminder, the fourth argument of the `agent` method can be set to `true` or `false`, indicating whether React Agent will log in the console what it is doing. After restarting the server, what is usually sent back to the client will instead be logged in the console. To log out other information such as the direct response from a SQL query, it is possible to include console logs in the actions.
+
+```javascript
+const runs = {
+  register: { username: 'Billy', password: 'hardPassword' },
+  postMessage: { message: 'hello world' },
+  getMessages: null,
+};
+
+// add `runs` as fifth parameter to use Postman-style testing for server-side
+agent(server, actions, database, false, runs);
+```
+.
 ## Contributors
 
 ### Authors
