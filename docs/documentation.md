@@ -1,5 +1,7 @@
 # Documentation
 
+Below is the documentation for React Agent and React Agent Server. If you're just getting started, it may be useful to read our [client](https://github.com/yokyak/react-agent/tree/master/packages/react-agent) and/or [server-side](https://github.com/yokyak/react-agent/tree/master/packages/react-agent-server) guides first. 
+
 ## Table Of Contents  
 ### Client-Side: React Agent 
   * [Agent](#AgentWrapper)   
@@ -240,10 +242,10 @@ const currentStore = getStore()
 ## agent
 ### Syntax
 ```javascript
-agent(server, actions[, database])
+agent(server, actions[, database[, logger[, runs ] ] ] )
 ```
 *Parameters*  
-`server` - A Node/Express server.  
+`server` - a Node/Express server.  
 `actions` - a nested object where each entry is a key indicating the name of the action, and a value of an object containing the properties `pre` (optional), `action` (required), `callback` (optional), and `errorMessage` (optional).  
 `database` (optional) - an object containing the information necessary to connect to a database. It requires the six properties:
   * `name`
@@ -251,10 +253,16 @@ agent(server, actions[, database])
   * `password`
   * `dialect`
   * `host`
-  * `port`
+  * `port`  
+
+`logger` (optional) - either a boolean or a function. If `true` is provided, React Agent will log in the console what it is doing. If a function is provided, React Agent will pass the logger messages to the function that is provided.  
+`runs` (optional) - an object that enables server-side actions to be run independent of the front end. Each property is the key of the action that is being tested, and each respective value is the value being passed to the action from the client, if applicable. If a value is not being passed from the client, the value should be null. 
 
 ### Description
-The `agent` method is the initial set-up to get React Agent Server working on the server-side.
+The `agent` method is the initial set-up to get React Agent Server working on the server-side. 
+
+It includes functionality for 1) Postman-style testing so that server-side actions can be run independently of a front end, and 2) a logger to display what React Agent is doing. These two features can be very helpful in development. 
+
 ### Example
 ```javascript
 const server = http.createServer(fn).listen(3000)
@@ -282,6 +290,10 @@ const database = {
 
 agent(server, actions, database)
 ```
+
+
+
+
 
 <a name="pre"></a>
 ## pre
