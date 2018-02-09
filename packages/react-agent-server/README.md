@@ -109,7 +109,7 @@ const actions = {
 }
 ```
 
-A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return false, the promise that the client-side `run` method returns will be rejected and the action will not run.
+A `pre` property can be used to run any number of functions before the action is ran. This is an easy way to provide validation functions or modify the request object sent from the client in any way before it's passed to the action. Just return the request object and it will get passed into the next function. If any of these functions return `false`, the promise that the client-side `run` method returns will be rejected and the action will not run.
 
 ```javascript
 login: {
@@ -156,7 +156,7 @@ Similar to the functionality of PostMan, it is also possible to run actions defi
 
 Create an object where 1) each attribute is the name of the action that is being tested, and 2) each respective value is the value being passed to the action from the client, if applicable. If a value is not being passed from the client, the value should be null. 
 
-Then, include this object as the fifth argument of the `agent` method. As a reminder, the fourth argument of the `agent` method can be set to true or false, indicating whether React Agent will console log what it is doing. After restarting the server, what is usually sent back to the client will instead be logged in the console. To log out other information such as the direct response from a SQL query, it is possible to include console logs in the actions.
+Then, include this object as the fifth argument of the `agent` method. As a reminder, the fourth argument of the `agent` method can be set to `true` or `false`, indicating whether React Agent will log in the console what it is doing. After restarting the server, what is usually sent back to the client will instead be logged in the console. To log out other information such as the direct response from a SQL query, it is possible to include console logs in the actions.
 
 ```javascript
 const runs = {
