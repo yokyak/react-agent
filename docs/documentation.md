@@ -16,7 +16,7 @@ Below is the documentation for React Agent and React Agent Server. If you're jus
   * [getStore](#getStore)  
 
 ### Server-Side: React Agent Server 
-  * [agent](#server)  
+  * [agent](#server3)  
   * [pre](#pre)  
   * [action](#action)  
   * [callback](#callback)  
@@ -235,10 +235,10 @@ The `getStore` method returns the entire current state of React Agent's store. A
 ```javascript
 const currentStore = getStore()
 ```
-<a name="server"></a> 
+
 # Server-Side: React Agent Server
 
-<a name="server"></a>
+<a name="server3"></a>
 ## agent
 ### Syntax
 ```javascript
