@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fetch = require('request');
 
 module.exports = {
@@ -41,7 +42,6 @@ module.exports = {
         if (request.cookie2 === '456') return request;
         else return false;
       },
-      // request => false,
     ],
     action: 'SELECT username, _id FROM users WHERE username = :username AND password = :password',
     callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
@@ -53,6 +53,16 @@ module.exports = {
         if (error) reject(error);
         else resolve(body);
       });
-    }
-  }
+    },
+  },
+  getGIF: {
+    action: (resolve, reject, request) => {
+      const query = request.split(' ').join('+');
+      fetch(`http://api.giphy.com/v1/gifs/search?q=${query}&api_key=${process.env.APIKEYGIPHY}&limit=1`, (error, response, body) => {
+        const parsedBody = JSON.parse(body);
+        if (parsedBody.data.length === 0 || error) reject();
+        else resolve(parsedBody.data[0].images.fixed_height.url);
+      });
+    },
+  },
 };

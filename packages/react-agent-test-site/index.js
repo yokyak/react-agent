@@ -20,10 +20,11 @@ const database = {
 };
 
 // const runs = {
-//   register: { username: 'theBestName', password: 'ugh' },
+//   // register: { username: 'theBestName', password: 'ugh' },
 //   // postMessage: { message: 'hi NOW', id: 3 },
-//   getMessages: null,
-// }
+//   // getMessages: null,
+//   // getGIF: 'fun',
+// };
 
-// add runs as fifth parameter to use PostMan style testing for server-side
-agent(server, actions, database, false /*, runs */);
+// add runs as fifth parameter to use PostMan-style testing for server-side
+agent(server, actions, database, false/*, runs*/);
