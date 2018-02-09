@@ -16,7 +16,7 @@ Below is the documentation for React Agent and React Agent Server. If you're jus
   * [getStore](#getStore)  
 
 ### Server-Side: React Agent Server 
-  * [agent](#agent)  
+  * [agent](#server)  
   * [pre](#pre)  
   * [action](#action)  
   * [callback](#callback)  
@@ -238,7 +238,7 @@ const currentStore = getStore()
 <a name="server"></a> 
 # Server-Side: React Agent Server
 
-<a name="agent"></a>
+<a name="server"></a>
 ## agent
 ### Syntax
 ```javascript
