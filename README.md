@@ -37,7 +37,9 @@ To connect these, front-end and back-end developers usually write a lot of code 
 In contrast, React Agent serves as a communication channel between the client and the server. It abstracts state transfer to make it super easy to interact between the client and server.
 ![now](https://github.com/yokyak/react-agent/raw/master/docs/imgs/diagram-after.gif)
 
-Here's our full [documentation](https://github.com/yokyak/react-agent/blob/master/docs/documentation.md).
+## Documentation
+
+Here's our full [API documentation](https://github.com/yokyak/react-agent/blob/master/docs/documentation.md).
 
 ## Getting Started
 
