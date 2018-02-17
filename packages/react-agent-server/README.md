@@ -57,7 +57,7 @@ First, `require` React Agent Server into your server-side script.
 const agent = require('react-agent-server')
 ```
 
-The `agent` method is called with a server, actions and database object.
+The `agent` method is called with a server, actions and database object (optional). The `dialect` of the database object can be `'mysql'`, `'sqlite'`, `'postgres'`, or `'mssql'`, depending on the type of database management system.
 
 ```javascript
 const server = http.createServer(fn).listen(3000)
@@ -81,7 +81,7 @@ agent(server, actions, database)
 ```
 With this setup, whenever `run('getMessages')` is called from the client-side (via React Agent), the corresponding SQL query ("SELECT * FROM posts") under the `action` property for `getMessages` will be ran. The results of this SQL query will be returned to the client.
 
-It is possible to log what React Agent is doing by passing `true` as the fourth argument for `agent`. This feature can be helpful for debugging.
+It is possible to log what React Agent is doing by passing `true` as the fourth argument for `agent`. This feature can be helpful for debugging. 
 
 As a best practice, a callback can also be added to inspect and modify the direct response from the SQL database. Whatever is returned from this callback is what gets sent back to the client. Call `console.log` on the response to see the SQL results.
 

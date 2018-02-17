@@ -251,7 +251,7 @@ agent(server, actions[, database[, logger[, runs ] ] ] )
   * `name`
   * `user`
   * `password`
-  * `dialect`
+  * `dialect` - the value should be `'mysql'`, `'sqlite'`, `'postgres'`, or `'mssql'`, depending on the type of database management system.
   * `host`
   * `port`  
 
